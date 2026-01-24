@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Hi</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+    </head>
+    <body>
+        <p>Hello There</p>
+
+        <div id="results"></div>
+
+        <script>
+            async function generate() {
+                const length = 16
+                const res = await fetch(`/generate?length=${length}`);
+                const data = await res.json();
+                
+                const resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = ""; // clear previous results
+                
+                for (const [key, value] of Object.entries(data)) {
+                    const row = document.createElement("div");
+
+                    const title = document.createElement("strong");
+                    title.textContent = key + ": ";
+
+                    const content = document.createElement("span");
+
+                    // Handle arrays / objects nicely
+                    if (typeof value === "object") {
+                        content.textContent = JSON.stringify(value, null, 2);
+                        content.style.whiteSpace = "normal"; //"normal|nowrap|pre|initial|inherit"
+                    } else {
+                        content.textContent = value;
+                    }
+
+                    row.appendChild(title);
+                    row.appendChild(content);
+                    resultsDiv.appendChild(row);
+                }
+            }
+        </script>
+    </body>
+</html>

@@ -5,16 +5,6 @@
     <style>
       body { font-family: monospace; background: #111; color: #eee; }
       .string { margin: 6px 0; }
-      .repeat-2 { color: yellow; }
-      .repeat-3 { color: orange; }
-      .repeat-4 { color: red; }
-      .repeat-5 { color: magenta; }
-      .repeat-6 { color: purple; }
-      .repeat-7 { color: blue; }
-      .repeat-8 { color: cyan; }
-      .repeat-9 { color: lightgreen; }
-      .repeat-10 { color: green; }
-      .repeat-11 { color: black; }
     </style>
   </head>
   <body>
@@ -30,34 +20,33 @@
     <div id="results"></div>
 
     <script>
-    async function generate() {
-      const length = document.getElementById("length").value;
-      const res = await fetch(`/generate?length=${length}`);
-      const data = await res.json();
+      async function generate() {
+        const length = document.getElementById("length").value;
+        const res = await fetch(`/generate?length=${length}`);
+        const data = await res.json();
 
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "";
+        const obj = Array.isArray(data) ? data[0] : data;
 
-      data.forEach(item => {
-        let html = "";
-        const counts = {};
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = "";
 
-        item.repeated_chars.forEach(rc => {
-          counts[rc.char] = rc.count;
-        });
+        for (const [key, value] of Object.entries(obj)) {
+          const line = document.createElement("div");
 
-        for (let ch of item.string) {
-          const count = counts[ch] || 1;
-          html += `<span class="repeat-${count}">${ch}</span>`;
+          const keyEl = document.createElement("strong");
+          keyEl.textContent = key + ": ";
+
+          const valueEl = document.createElement("span");
+          valueEl.textContent =
+              typeof value === "object"
+                  ? JSON.stringify(value)
+                  : value;
+
+          line.appendChild(keyEl);
+          line.appendChild(valueEl);
+          resultsDiv.appendChild(line);
         }
-
-        resultsDiv.innerHTML += `
-          <div class="string">
-            ${html}
-            — ${item.points.toFixed(2)}
-          </div>`;
-      });
-    }
+      }
     </script>
 
   </body>
