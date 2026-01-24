@@ -1,0 +1,13 @@
+{
+    'string': 'zpzphfbhicgsmibt', 
+    'repeated_chars': [ {'char': 'z', 'count': 2}, 
+                        {'char': 'p', 'count': 2}, 
+                        {'char': 'h', 'count': 2}, 
+                        {'char': 'b', 'count': 2}, 
+                        {'char': 'i', 'count': 2} ], 
+    'percent_unique': 0.375, 
+    'rawpoints': 80, 
+    'blockbonus': 1.0, 
+    'bellcurve': 0.125, 
+    'points': 138.34906721634093
+}
