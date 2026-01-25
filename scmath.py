@@ -1,148 +1,80 @@
-import random
-import string
-import csv
-from collections import Counter, defaultdict
-import math
-from functools import lru_cache
-import matplotlib.pyplot as plt
-import statistics
+import functions_imports as fi
 
+# Load Trie Once
+english_trie = fi.load_dictionary_trie("top-english-wordlists\\top_english_words_lower_50000.txt")
 
+###########################################
+############### FINAL SCORE ###############
+###########################################
+def generate_scored_string(length):
+    ##### GENERATE RANDOM STRING #####
+    random_string = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=length))
 
+    ##### GRAB PARAMETERS #####
+    words_within = fi.find_words_in_string(random_string, english_trie, min_length=3)
 
+    repeated_substrings_list = fi.repeated_substrings(random_string)
+    repeated_1_strs = list(filter(lambda item: item[1] == 1, repeated_substrings_list))
+    repeated_2_plus_strs = list(filter(lambda item: item[1] > 1, repeated_substrings_list)) 
 
-##### ENTROPY #####
-def string_entropy(s: str) -> float:
-    """
-    Computes Shannon entropy (bits per character)
-    over the observed character distribution.
-    """
-    n = len(s)                          # length of the string
-    if n == 0:                          # avoid division by zero
-        return 0.0
+    palindromes = list(fi.palindromic_blocks_all(random_string))
+    char_blocks = list(fi.character_blocks(random_string))
+    percent_unique = fi.pct_unique(random_string)
+    z_score = fi.vowel_z_score(random_string)
+    entropy = fi.string_entropy(random_string)
+    bookend = fi.maximal_bookend(random_string)
 
-    counts = Counter(s)                 # frequency of each character
-    entropy = 0.0                       # initialize entropy  
+    ##### CALCULATE POINTS #####
+    points = 0
 
-    for count in counts.values():       # calculate entropy
-        p = count / n                   # probability of character
-        entropy -= p * math.log2(p)     # entropy formula
+    for letter in random_string:
+        points += fi.letter_values[letter]
 
-    return entropy
+    length_bonus = 1 + (length/50)
+    points = round(points ** length_bonus)
+    
+    return {
+        "string": random_string,
+        "repeated_chars": repeated_1_strs,
+        "repeated_clusters": repeated_2_plus_strs,
+        "bookend": bookend,
+        "palindromes": palindromes,
+        "character_blocks": char_blocks,
+        "words_within": words_within,
+        "percent_unique": round(percent_unique,5),
+        "vowel_z_score": round(z_score, 5),
+        "entropy": round(entropy, 5),
+        "points": points
+    }
 
-##### VOWEL DISTRIBUTION Z SCORE #####
-def vowel_z_score(s: str) -> float:
+def lengths_dist_heatmap():
+    lengths = []
+    score = []
 
-    s = s.lower()                           # normalize to lowercase
-    n = len(s)                              # length of the string       
-    if n == 0:                              # avoid division by zero
-        return 0.0
+    N = 10000
 
-    vowels = set("aeiou")                   # define vowels
-    V = sum(1 for c in s if c in vowels)    # count vowels
+    for L in range(2, 33):
+        for _ in range(N):
+            s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=L))
+            points = 0
+            length_bonus = 1 + ((L**1.5)/20)
+            for letter in s:
+                points += fi.letter_values[letter]
+            
+            points = points * length_bonus
+           
+            lengths.append(L)
+            score.append(points)
 
-    p = 5 / 26                              # expected vowel frequency
-    expected = n * p                        # expected vowel count 
-    variance = n * p * (1 - p)              # variance of vowel count
+    fi.plt.hist2d(
+        score,
+        lengths,
+        bins=[200, 31],      # 100 score bins, 32 length bins
+        cmap="inferno"
+    )
+    fi.plt.xlabel("score(random_string)")
+    fi.plt.ylabel("string length")
+    fi.plt.colorbar(label="count")
+    fi.plt.show()
 
-    if variance == 0:                       # avoid division by zero
-        return 0.0
-
-    return (V - expected) / math.sqrt(variance) # z-score formula
-
-##### PALINDROMIC BLOCKS #####
-def palindromic_blocks_all(text: str):
-    text_length = len(text)
-
-    # ---- Odd-length palindromes ----
-    for center_index in range(text_length):
-        expansion_radius = 1
-        best_left = None
-        best_right = None
-
-        while (
-            center_index - expansion_radius >= 0 and
-            center_index + expansion_radius < text_length and
-            text[center_index - expansion_radius] ==
-            text[center_index + expansion_radius]
-        ):
-            best_left = center_index - expansion_radius
-            best_right = center_index + expansion_radius
-            expansion_radius += 1
-
-        if best_left is not None:
-            result = text[best_left : best_right + 1]
-            if len(set(result)) > 1:
-                yield result
-
-    # ---- Even-length palindromes ----
-    for left_center in range(text_length - 1):
-        expansion_radius = 0
-        best_left = None
-        best_right = None
-
-        while (
-            left_center - expansion_radius >= 0 and
-            left_center + expansion_radius + 1 < text_length and
-            text[left_center - expansion_radius] ==
-            text[left_center + expansion_radius + 1]
-        ):
-            best_left = left_center - expansion_radius
-            best_right = left_center + expansion_radius + 1
-            expansion_radius += 1
-
-        if best_left is not None:
-            result = text[best_left : best_right + 1]
-            if len(set(result)) > 1:
-                yield result
-
-
-def character_blocks(text: str):
-    text_length = len(text)
-    index = 0
-
-    while index < text_length:
-        start_index = index
-        current_char = text[index]
-
-        while index + 1 < text_length and text[index + 1] == current_char:
-            index += 1
-
-        end_index = index
-        block_length = end_index - start_index + 1
-
-        if block_length > 1:
-            yield text[start_index : end_index + 1]
-
-        index += 1
-
-
-if __name__ == "__main__":
-
-    test_strings = [
-    "abcdefghijklmnopqrstuvwxyz",
-    "aaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "zzzzzzzzzzzzzzzzzzzzzzzzzz",
-    "zyxwvutsrqponmlkjihgfedcab",
-    "ababababababababababababab",
-    "abcabcabcabcabcabcabcabcab",
-    "aaaaaaaaaaaaabbbbbbbbbbbbb",
-    "pqowkjldsanfbhajsdlknajfnh"
-    ]
-
-    debug = False
-    #for _ in range(100 if debug == False else 1):
-    count = 0
-    while True:
-        rs = ''.join(random.choices(string.ascii_lowercase, k=32)) if debug == False else "abccdefgcc"
-        blocks = list(character_blocks(rs))
-
-        maxlen = max([len(b) for b in blocks]) if len(blocks) > 0 else 0
-        if maxlen >= 7:
-            print(f"{count} {rs}: {blocks}")
-        count += 1
-        #print(f"{rs}: {list(palindromic_blocks_all(rs))}")
-    # test_string = test_strings[1]
-    # print(f"String: {test_string}")
-    # print(f"Entropy: {string_entropy(test_string)} bits/char")
-    # print(f"Vowel Z-Score: {vowel_z_score(test_string)}")
+lengths_dist_heatmap()

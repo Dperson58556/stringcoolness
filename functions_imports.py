@@ -2,6 +2,9 @@ import string
 import random
 from collections import Counter, defaultdict
 import math
+import matplotlib.pyplot as plt
+
+############################ STRUCTURE-RELATED PARAMETERS ############################
 
 ##### PERCENT UNIQUE #####
 def pct_unique(s: str):
@@ -183,32 +186,79 @@ def string_entropy(s: str) -> float:
 
     return entropy
 
-##### FINAL SCORE #####
-def generate_scored_string(length):
-    random_string = ''.join(random.choices(string.ascii_lowercase, k=length))
+############################ ENGLISH-RELATED PARAMETERS ############################
 
-    points = 0
+##### GIVE EACH LETTER A VALUE #####
+letter_values = {
+    'a': 1,  'b': 3,  'c': 3,  'd': 2,
+    'e': 1,  'f': 4,  'g': 2,  'h': 4,
+    'i': 1,  'j': 8,  'k': 5,  'l': 1,
+    'm': 3,  'n': 1,  'o': 1,  'p': 3,
+    'q': 10, 'r': 1,  's': 1,  't': 1,
+    'u': 1,  'v': 4,  'w': 4,  'x': 8,
+    'y': 4,  'z': 10
+}
 
-    repeated_substrings_list = repeated_substrings(random_string)
+##### CREATE TRIE #####
+class TrieNode:
+    __slots__ = ("children", "is_word")
 
-    repeated_1_strs = list(filter(lambda item: item[1] == 1, repeated_substrings_list))
-    repeated_2_plus_strs = list(filter(lambda item: item[1] > 1, repeated_substrings_list)) 
-    palindromes = list(palindromic_blocks_all(random_string))
-    char_blocks = list(character_blocks(random_string))
-    percent_unique = pct_unique(random_string)
-    z_score = vowel_z_score(random_string)
-    entropy = string_entropy(random_string)
-    bookend = maximal_bookend(random_string)
+    def __init__(self):
+        self.children = {}
+        self.is_word = False
 
-    return {
-        "string": random_string,
-        "repeated_chars": repeated_1_strs,
-        "repeated_clusters": repeated_2_plus_strs,
-        "palindromes": palindromes,
-        "character_blocks": char_blocks,
-        "percent_unique": percent_unique,
-        "vowel_z_score": z_score,
-        "entropy": entropy,
-        "bookend": bookend,
-        "points": points
-    }
+##### CHECK IF WORD HAS VOWELS #####
+def has_vowel(word: str) -> bool:
+    VOWELS = set("aeiouy")
+    return any(ch in VOWELS for ch in word)
+
+##### LOAD WORDS INTO TRIE #####
+def load_dictionary_trie(path: str, min_length: int = 3) -> TrieNode:
+    root = TrieNode()
+
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            word = line.strip()
+            if len(word) < min_length:
+                continue
+
+            if has_vowel(word) == False:
+                continue
+
+            node = root
+            for ch in word:
+                if ch not in node.children:
+                    node.children[ch] = TrieNode()
+                node = node.children[ch]
+
+            node.is_word = True
+
+    return root
+
+##### FIND ENGLISH WORDS IN STRING #####
+def find_words_in_string(s: str, trie: TrieNode, min_length: int = 3):
+    results = []
+    n = len(s)
+
+    for i in range(n):
+        node = trie
+        j = i
+
+        while j < n:
+            ch = s[j]
+            if ch not in node.children:
+                break
+
+            node = node.children[ch]
+            length = j - i + 1
+
+            if node.is_word and length >= min_length:
+                results.append((i, j + 1, s[i:j + 1], length))
+
+            j += 1
+
+    results.sort(key=lambda x: x[3], reverse=True)
+    return results
+
+
+
