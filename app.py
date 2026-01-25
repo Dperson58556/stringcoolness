@@ -15,7 +15,10 @@ def generate_scored_string(length):
     words_within = fi.find_words_in_string(random_string, english_trie, min_length=3)
 
     repeated_substrings_list = fi.repeated_substrings(random_string)
-    repeated_1_strs = list(filter(lambda item: item[1] == 1, repeated_substrings_list))
+    repeated_1_strs = {}
+
+    for elem in list(filter(lambda item: item[1] == 1, repeated_substrings_list)):
+        repeated_1_strs[elem[0]] = elem[2]
     repeated_2_plus_strs = list(filter(lambda item: item[1] > 1, repeated_substrings_list)) 
 
     palindromes = list(fi.palindromic_blocks_all(random_string))
@@ -32,7 +35,8 @@ def generate_scored_string(length):
     total_points = 0
 
     # BONUSES
-    letter_points += (fi.letter_values[letter] for letter in random_string)
+    for letter in random_string:
+        letter_points += fi.letter_values[letter] #* (repeated_1_strs[letter] if repeated_1_strs[letter]>0 else 1)
     length_bonus = 1 + ((length**1.25)/20)
     
     total_points = letter_points * length_bonus

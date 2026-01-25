@@ -6,204 +6,56 @@ import math
 from functools import lru_cache
 import matplotlib.pyplot as plt
 import statistics
+import functions_imports as fi
 
-# def prob(length, rep_threshold, trials) -> float:
-#     if rep_threshold > length:
-#         return 0.0
-#     if rep_threshold == 1:
-#         return 1.0
-
-#     hit = 0
-
-#     for t in range(trials):
-
-#         random_string = ''.join(random.choices(alphabet, k=length))
-#         mc = Counter(random_string).most_common(1)[0]
-#         if mc[1] >= rep_threshold:
-#             hit += 1
-#             print(f"{random_string}, {mc}")
-
-#     print(f"hits: {hit} / {trials}")
-#     return (hit / trials)
-
-# alphabet = string.ascii_lowercase
-# LENGTH = 16
-# REP_THRESHOLD = 7
-# trials = 100000
-# OUTPUT_FILE = "at_least_x_repeats_simulated.csv"
-
-# print(f"LENGTH={LENGTH},>=1 repetitions of count {REP_THRESHOLD},trials={trials},{prob(LENGTH, REP_THRESHOLD, trials):.10f}")
-
-# with open(OUTPUT_FILE, "w", newline="") as f:
-#     writer = csv.writer(f)
-
-#     header = ["x \\ y"] + list(range(1, LENGTH + 1))
-#     writer.writerow(header)
-
-
-#     for strlen in range(1, LENGTH + 1):
-#         row = [strlen]
-#         for repcount in range(1, REP_THRESHOLD + 1):
-#             row.append(f"{prob(strlen, repcount, trials):.10f}")
-#         writer.writerow(row)
-
-# for strlen in range(1, LENGTH + 1):
-#     for repcount in range(1, REP_THRESHOLD + 1):
-#         print(f"{strlen},{repcount},{prob(strlen, repcount, trials):.10f}")
-
-# def xprob(length, rep) -> float:
-
-#     alphsize = 26
-#     if rep > length:
-#         return 0.0
-#     if rep == 1 :
-#         return 1.0
-
-#     valid = (alphsize ** (length-rep+1))
-#     total = (alphsize ** length)
-#     return valid / total
-
-# def count_strings_at_least_r_repeats(n: int, r: int, k: int) -> int:
-#     """
-#     Returns the number of length-n strings over an alphabet of size k
-#     in which at least one character appears r or more times.
-#     """
-#     if r > n:
-#         return 0.0
-
-#     total = k ** n
-
-#     @lru_cache(None)
-#     def count_distributions(letters_left, slots_left):
-#         """
-#         Counts all ways to assign counts < r to `letters_left` letters
-#         summing to `slots_left`, weighted by multinomial contributions.
-#         """
-#         if letters_left == 0:
-#             return 1 if slots_left == 0 else 0
-#         if slots_left < 0:
-#             return 0
-
-#         result = 0
-#         for c in range(min(r, slots_left + 1)):
-#             result += count_distributions(
-#                 letters_left - 1,
-#                 slots_left - c
-#             ) / factorial(c)
-
-#         return result
-
-#     complement = factorial(n) * count_distributions(k, n)
-
-#     return (total - int(round(complement))) / total
-
-# for len in range(27, 65):
-#     print(f"{count_strings_at_least_r_repeats(len, 12, 26):.15f}")
-
-
-# def maximal_nonoverlapping_repeated_substrings(s: str):
-#     n = len(s)
-#     positions = defaultdict(list)
-#     char_counts = Counter(s).most_common()
-
-#     # Record positions of all substrings
-#     for i in range(n):
-#         for j in range(i + 1, n + 1):
-#             positions[s[i:j]].append(i)
-
-#     repeated = []
-#     # Compute non-overlapping counts
-#     for substr, starts in positions.items():
-#         L = len(substr)
-#         starts.sort()
-#         count = 0
-#         last_end = -1
-
-#         for i in starts:
-#             if i >= last_end:
-#                 count += 1
-#                 last_end = i + L
-
-#         if count >= 2 and L >= 2:
-#             repeated.append((substr, L, count))
-
-#     # specially consider repeated 1-strings (chars)
-#     for elem in char_counts:
-#         if elem[1]==1:
-#             break
-#         else:
-#             repeated.append((elem[0], 1, elem[1]))
-#     # Sort longest first
-#     repeated.sort(key=lambda x: (-x[1], x[0]))
-
-#     # Keep only maximal repeats
-#     result = []
-#     for substr, length, count in repeated:
-#         subsumed = False
-#         for kept_substr, kept_len, kept_count in result:
-#             if (
-#                 kept_count == count and
-#                 substr in kept_substr
-#             ):
-#                 subsumed = True
-#                 break
-
-#         if not subsumed:
-#             result.append((substr, length, count))
-
-#     return result
-
-# debug = 0
-# for i in range(100):
-#     rs = ''.join(random.choices(string.ascii_lowercase, k=32))
-#     #rs = 'abcdefooooghij'
-#     list_of_repeats = maximal_nonoverlapping_repeated_substrings(rs)[1:]
-#     pruned_repeats = [r for r in list_of_repeats if r[1]>=2]
-
-#     if pruned_repeats:
-#         print(f"{rs} -> {pruned_repeats}")
-#     if debug==True:
-#         break
+english_trie = fi.load_dictionary_trie("dict.txt")
 
 def generate_scored_string(length):
-    random_string = ''.join(random.choices(string.ascii_lowercase, k=length))
+    ##### GENERATE RANDOM STRING #####
+    random_string = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=length))
 
-    crs = Counter(random_string).most_common()
+    ##### GRAB PARAMETERS #####
+    words_within = fi.find_words_in_string(random_string, english_trie, min_length=3)
 
-    repeated_chars = []
-    rawpoints = 0
+    repeated_substrings_list = fi.repeated_substrings(random_string)
+    repeated_1_strs = list(filter(lambda item: item[1] == 1, repeated_substrings_list))
+    repeated_2_plus_strs = list(filter(lambda item: item[1] > 1, repeated_substrings_list)) 
 
-    for char, count in crs:
-        if count == 1:
-            break
-        repeated_chars.append({"char": char, "count": count})
-        rawpoints += count ** 4
+    palindromes = list(fi.palindromic_blocks_all(random_string))
+    char_blocks = list(fi.character_blocks(random_string))
+    percent_unique = fi.pct_unique(random_string)
+    z_score = fi.vowel_z_score(random_string)
+    entropy = fi.string_entropy(random_string)
+    bookend = fi.maximal_bookend(random_string)
 
-    # block bonus logic
-    blockbonus = 1
-    accrue = 0
-    for i in range(1, length):
-        if random_string[i] == random_string[i - 1]:
-            accrue += 1
-        else:
-            accrue = 0
-        blockbonus += accrue / length
+    ##### CALCULATE POINTS #####
+    letter_points = 0
+    length_bonus = 0
+    entropy_bonus = 0
+    total_points = 0
 
-    counthits = sum(rc["count"] for rc in repeated_chars)
-    percent_unique = (length - counthits) / length
+    # BONUSES
+    for letter in random_string:
+        letter_points += (fi.letter_values[letter] * ()
+    #letter_points += (fi.letter_values[letter] for letter in random_string)
+    length_bonus = 1 + ((length**1.25)/20)
+    
+    total_points = letter_points * length_bonus
 
-    bellcurve = abs(percent_unique - 0.5)
-    points = (rawpoints ** (1 + bellcurve)) ** blockbonus if rawpoints > 0 else 0
-
-    return {
-        "string": random_string,
-        "repeated_chars": repeated_chars,
-        "percent_unique": percent_unique,
-        "rawpoints": rawpoints,
-        "blockbonus": blockbonus,
-        "bellcurve": bellcurve,
-        "points": points
-    }
+    return round(total_points)
+    # return {
+    #     "random_string": random_string,
+    #     "repeated_1_strs": repeated_1_strs,
+    #     "repeated_2_plus_strs": repeated_2_plus_strs,
+    #     "bookend": bookend,
+    #     "palindromes": palindromes,
+    #     "char_blocks": char_blocks,
+    #     "words_within": words_within,
+    #     "percent_unique": round(percent_unique,5),
+    #     "z_score": round(z_score, 5),
+    #     "entropy": round(entropy, 5),
+    #     "total_points": round(total_points)
+    # }
 
 def string_entropy(s: str) -> float:
     """
@@ -318,18 +170,18 @@ def percent_unique(s):
 
 def lengths_dist_heatmap():
     lengths = []
-    pct_unique = []
+    score = []
 
-    N = 100000
+    N = 1000
 
     for L in range(2, 33):
         for _ in range(N):
             s = rs = ''.join(random.choices(string.ascii_lowercase, k=L))
             lengths.append(L)
-            pct_unique.append(percent_unique(s))
+            score.append(score(s))
 
     plt.hist2d(
-        pct_unique,
+        score,
         lengths,
         bins=[200, 31],      # 100 score bins, 32 length bins
         cmap="inferno"
@@ -338,61 +190,6 @@ def lengths_dist_heatmap():
     plt.ylabel("string length")
     plt.colorbar(label="count")
     plt.show()
-
-##### REPEATED SUBSTRINGS #####
-def repeated_substrings(s: str):
-    n = len(s)
-    positions = defaultdict(list)
-    char_counts = Counter(s).most_common()
-
-    # Record positions of all substrings
-    for i in range(n):
-        for j in range(i + 1, n + 1):
-            positions[s[i:j]].append(i)
-
-    repeated = []
-    # Compute non-overlapping counts
-    for substr, starts in positions.items():
-        L = len(substr)
-        starts.sort()
-        count = 0
-        last_end = -1
-
-        for i in starts:
-            if i >= last_end:
-                count += 1
-                last_end = i + L
-
-        if count >= 2 and L >= 2:
-            repeated.append((substr, L, count))
-
-    # specially consider repeated 1-strings (chars)
-    for elem in char_counts:
-        if elem[1]==1:
-            break
-        else:
-            repeated.append((elem[0], 1, elem[1]))
-    # Sort longest first
-    repeated.sort(key=lambda x: (-x[1], x[0]))
-
-    # Keep only maximal repeats
-    result = []
-    for substr, length, count in repeated:
-        subsumed = False
-        for kept_substr, kept_len, kept_count in result:
-            if (
-                kept_count == count and
-                substr in kept_substr
-            ):
-                subsumed = True
-                break
-
-        if not subsumed:
-            result.append((substr, length, count))
-
-    return result
-
-#print(repeated_substrings("abcccccccccccccccccccc"))
 
 #lengths_dist_heatmap()
 # length = 12
