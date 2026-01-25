@@ -36,7 +36,7 @@ def generate_scored_string(length):
 
     # BONUSES
     for letter in random_string:
-        letter_points += fi.letter_values[letter] #* (repeated_1_strs[letter] if repeated_1_strs[letter]>0 else 1)
+        letter_points += fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)
     length_bonus = 1 + ((length**1.25)/20)
     
     total_points = letter_points * length_bonus
