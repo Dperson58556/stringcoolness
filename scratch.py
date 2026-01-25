@@ -310,23 +310,29 @@ test_strings = [
 
 # for _ in range(10):
 
+def percent_unique(s):
+    n = len(s)
+    unique_chars = len(set(s))
+    return unique_chars / n
+
+
 def lengths_dist_heatmap():
     lengths = []
-    zscores = []
+    pct_unique = []
 
     N = 100000
 
-    for L in range(4, 33):
+    for L in range(2, 33):
         for _ in range(N):
             s = rs = ''.join(random.choices(string.ascii_lowercase, k=L))
             lengths.append(L)
-            zscores.append(vowel_z_score(s))
+            pct_unique.append(percent_unique(s))
 
     plt.hist2d(
-        zscores,
+        pct_unique,
         lengths,
-        bins=[200, 29],      # 100 score bins, 32 length bins
-        cmap="Spectral"
+        bins=[200, 31],      # 100 score bins, 32 length bins
+        cmap="inferno"
     )
     plt.xlabel("score(random_string)")
     plt.ylabel("string length")
@@ -386,7 +392,7 @@ def repeated_substrings(s: str):
 
     return result
 
-print(repeated_substrings("abcccccccccccccccccccc"))
+#print(repeated_substrings("abcccccccccccccccccccc"))
 
 #lengths_dist_heatmap()
 # length = 12
