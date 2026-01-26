@@ -16,12 +16,12 @@ def generate_scored_string(length):
     words_within = fi.find_words_in_string(random_string, english_trie, min_length=3)
 
     repeated_1_strs = {}
-    repeated_2_plus_strs = {}
+    repeated_chunks = {}
     for elem in fi.repeated_substrings(random_string):
         if elem[1] == 1:
             repeated_1_strs[elem[0]] = elem[2]
         else:
-            repeated_2_plus_strs[elem[0]] = elem[2]
+            repeated_chunks[elem[0]] = elem[2]
 
     palindromes = list(fi.palindromic_blocks_all(random_string))
     char_blocks = list(fi.character_blocks(random_string))
@@ -53,23 +53,35 @@ def generate_scored_string(length):
         palindrome_letter_bonus = 0
         for char in palindrome[2]:
             palindrome_letter_bonus += fi.letter_values[char]
-        palindrome_bonus += ( (palindrome_letter_bonus) * (len(palindrome[2])**2))
-        
-    words_within_bonus      = 1 + (len(words_within) / 10)
+        palindrome_bonus += ( (palindrome_letter_bonus) * 3 * (len(palindrome[2])**2))
+    
+    for word in words_within:
+        for char in word[2]:
+            words_within_bonus += fi.letter_values[char]*(len(word[2])**4)
 
+    for block in char_blocks:
+        for char in block[2]:
+            char_blocks_bonus += (fi.letter_values[char]*2*(len(block[2])**3))
+
+    for chunk in repeated_chunks:
+        for char in chunk:
+            repeated_chunks_bonus += fi.letter_values[char]*2*(repeated_chunks[chunk]**2)
+
+    remaining_bonuses = (palindrome_bonus +
+                        words_within_bonus +  
+                        char_blocks_bonus +
+                        repeated_chunks_bonus)
+    
     total_points = (letter_points * 
                     length_bonus * 
                     entropy_bonus * 
                     vowel_ratio_bonus * 
-                    bookend_bonus #* 
-                    #palindrome_bonus * 
-                    #words_within_bonus
-                )
+                    bookend_bonus) + remaining_bonuses
 
     return {
         "random_string": random_string,
         "repeated_1_strs": repeated_1_strs,
-        "repeated_2_plus_strs": repeated_2_plus_strs,
+        "repeated_chunks": repeated_chunks,
         "bookend": bookend,
         "palindromes": palindromes,
         "char_blocks": char_blocks,
@@ -85,6 +97,8 @@ def generate_scored_string(length):
         "bookend_bonus": round(bookend_bonus, 5),
         "palindrome_bonus": round(palindrome_bonus, 5),
         "words_within_bonus": round(words_within_bonus, 5),
+        "char_blocks_bonus": round(char_blocks_bonus, 5),
+        "repeated_chunks_bonus": round(repeated_chunks_bonus, 5),
         "total_points": round(total_points)
     }
 

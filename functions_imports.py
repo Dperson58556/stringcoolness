@@ -292,7 +292,7 @@ def find_words_in_string(s: str, trie: TrieNode, min_length: int = 3):
             length = j - i + 1
 
             if node.is_word and length >= min_length:
-                results.append((i, j + 1, s[i:j + 1]))
+                results.append((i, j, s[i:j + 1]))
 
             j += 1
 

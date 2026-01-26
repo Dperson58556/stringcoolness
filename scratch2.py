@@ -1,2 +1,3 @@
-for i in range(32):
-    print(i)
+mydict = {1: 'a', 2: 'b', 3: 'c'}
+
+print(mydict.values())
