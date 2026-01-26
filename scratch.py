@@ -8,24 +8,33 @@ import matplotlib.pyplot as plt
 import statistics
 import functions_imports as fi
 
+# Load Trie Once
 english_trie = fi.load_dictionary_trie("dict.txt")
 
+###########################################
+############### FINAL SCORE ###############
+###########################################
 def generate_scored_string(length):
     ##### GENERATE RANDOM STRING #####
     random_string = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=length))
+    #random_string = 'lblblblblbghyghyghyghy'
 
     ##### GRAB PARAMETERS #####
     words_within = fi.find_words_in_string(random_string, english_trie, min_length=3)
 
-    repeated_substrings_list = fi.repeated_substrings(random_string)
-    repeated_1_strs = list(filter(lambda item: item[1] == 1, repeated_substrings_list))
-    repeated_2_plus_strs = list(filter(lambda item: item[1] > 1, repeated_substrings_list)) 
+    repeated_1_strs = {}
+    repeated_2_plus_strs = {}
+    for elem in fi.repeated_substrings(random_string):
+        if elem[1] == 1:
+            repeated_1_strs[elem[0]] = elem[2]
+        else:
+            repeated_2_plus_strs[elem[0]] = elem[2]
 
     palindromes = list(fi.palindromic_blocks_all(random_string))
     char_blocks = list(fi.character_blocks(random_string))
     percent_unique = fi.pct_unique(random_string)
-    z_score = fi.vowel_z_score(random_string)
-    entropy = fi.string_entropy(random_string)
+    vowel_ratio_rarity = fi.vowel_ratio_rarity_z_score(random_string)
+    entropy, entropy_rarity = fi.entropy_rarity_z_score(random_string)
     bookend = fi.maximal_bookend(random_string)
 
     ##### CALCULATE POINTS #####
@@ -36,77 +45,37 @@ def generate_scored_string(length):
 
     # BONUSES
     for letter in random_string:
-        letter_points += (fi.letter_values[letter] * ()
-    #letter_points += (fi.letter_values[letter] for letter in random_string)
+        letter_points += fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)
     length_bonus = 1 + ((length**1.25)/20)
-    
-    total_points = letter_points * length_bonus
+    entropy_bonus = 1 + abs(entropy_rarity)
+    vowel_ratio_bonus = 1 + abs(vowel_ratio_rarity)
 
-    return round(total_points)
-    # return {
-    #     "random_string": random_string,
-    #     "repeated_1_strs": repeated_1_strs,
-    #     "repeated_2_plus_strs": repeated_2_plus_strs,
-    #     "bookend": bookend,
-    #     "palindromes": palindromes,
-    #     "char_blocks": char_blocks,
-    #     "words_within": words_within,
-    #     "percent_unique": round(percent_unique,5),
-    #     "z_score": round(z_score, 5),
-    #     "entropy": round(entropy, 5),
-    #     "total_points": round(total_points)
-    # }
+    total_points = (letter_points * length_bonus * entropy_bonus * vowel_ratio_bonus)
 
-def string_entropy(s: str) -> float:
-    """
-    Computes Shannon entropy (bits per character)
-    over the observed character distribution.
-    """
-    n = len(s)
-    if n == 0:
-        return 0.0
+    return {
+        "random_string": random_string,
+        "repeated_1_strs": repeated_1_strs,
+        "repeated_2_plus_strs": repeated_2_plus_strs,
+        "bookend": bookend,
+        "palindromes": palindromes,
+        "char_blocks": char_blocks,
+        "words_within": words_within,
+        "percent_unique": round(percent_unique,5),
+        "vowel_ratio_rarity": round(vowel_ratio_rarity, 5),
+        "entropy": round(entropy, 5),
+        "entropy_rarity": round(entropy_rarity, 5),
+        "letter_points": letter_points,
+        "length_bonus": round(length_bonus, 5),
+        "entropy_bonus": round(entropy_bonus, 5),
+        "vowel_ratio_bonus": round(vowel_ratio_bonus, 5),
+        "total_points": round(total_points)
+    }
 
-    counts = Counter(s)
-    entropy = 0.0
-
-    for count in counts.values():
-        p = count / n
-        entropy -= p * math.log2(p)
-
-    return entropy
-
-import math
-
-def vowel_z_score(s: str) -> float:
-    """
-    Computes the Z-score of the observed vowel count
-    against the expected vowel ratio (5/26).
-
-    Z = (V - n*p) / sqrt(n*p*(1-p))
-    """
-    s = s.lower()
-    n = len(s)
-    if n == 0:
-        return 0.0
-
-    vowels = set("aeiou")
-    V = sum(1 for c in s if c in vowels)
-
-    p = 5 / 26
-    expected = n * p
-    variance = n * p * (1 - p)
-
-    if variance == 0:
-        return 0.0
-
-    return (V - expected) / math.sqrt(variance)
-
-
-def create_histogram(data, data2, bins=10, title="Histogram", xlabel="Value", ylabel="Frequency", pcolor ='skyblue'):
+def create_histogram(data, data2=None, bins=10, title="Histogram", xlabel="Value", ylabel="Frequency", pcolor ='skyblue'):
     # Create histogram
     plt.figure(figsize=(18, 6))
-    #plt.hist(data, bins=bins, color=pcolor, edgecolor='black', density=True)
-    plt.hist2d(data, data2, bins=bins, cmap='Blues')
+    plt.hist(data, bins=bins, color=pcolor, edgecolor='black', density=True)
+    #plt.hist2d(data, data2, bins=bins, cmap='Blues')
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -170,26 +139,40 @@ def percent_unique(s):
 
 def lengths_dist_heatmap():
     lengths = []
-    score = []
+    score     = []
 
-    N = 1000
+    N = 10000
 
-    for L in range(2, 33):
+    for L in range(3, 33):
         for _ in range(N):
-            s = rs = ''.join(random.choices(string.ascii_lowercase, k=L))
+            s = ''.join(random.choices(string.ascii_lowercase, k=L))
+            #s = "bdashjajherko"
             lengths.append(L)
-            score.append(score(s))
-
+            be = list(fi.palindromic_blocks_all(s))
+            if len(be) > 0:
+                for elem in be:
+                    if len(elem[2]) >= 3:
+                        score.append(len(elem[2]))
+                        break
+            else:
+                score.append(0)
+            x = len(score)
+            y = len(lengths)
+                
     plt.hist2d(
         score,
         lengths,
-        bins=[200, 31],      # 100 score bins, 32 length bins
+        bins=[10, 30],      # 100 score bins, 32 length bins
         cmap="inferno"
     )
     plt.xlabel("score(random_string)")
     plt.ylabel("string length")
     plt.colorbar(label="count")
     plt.show()
+
+lengths_dist_heatmap()
+# N = 10000000
+# for i in range(N):
 
 #lengths_dist_heatmap()
 # length = 12
@@ -208,10 +191,24 @@ def lengths_dist_heatmap():
 #     rs_ent = string_entropy(rs)
 #     million_trials_entropies.append(rs_ent)
 
+# t = 0
+# while True:
+#     s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=30))
+#     be = fi.maximal_bookend(s)
+#     if be is not None and be[0]>=5:
+        
+#     t += 1
 
-# create_histogram(million_trials_vowel_zscores, bins=50, title="Vowel Z-Scores Distribution", xlabel="Vowel Z-Score", ylabel="Frequency")
-# create_histogram(million_trials_entropies, bins=250, title="Entropy Distribution", xlabel="Vowel Z-Score", ylabel="Frequency", pcolor='red')
-# test = ""
-# for i in range(32):
-#     test += 'a'
-#     print(f"{vowel_z_score(test):.6f}, {test}")
+# t = 0
+# N= 1000
+# million_trials_bookends = []
+# for i in range(N):
+#     s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=16))
+#     be = fi.palindromic_blocks_all(s)
+#     if be is not None:
+#         million_trials_bookends.append(len(be[2]))
+#     else:
+#         million_trials_bookends.append(0)
+
+
+# create_histogram(million_trials_bookends, bins=7, title="Bookend Length Distribution", xlabel="Bookend Length", ylabel="Frequency")

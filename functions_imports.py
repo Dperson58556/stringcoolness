@@ -38,14 +38,7 @@ def repeated_substrings(s: str):
 
         if count >= 2 and L >= 2:
             repeated.append((substr, L, count))
-
-    # specially consider repeated 1-strings (chars)
-    for elem in char_counts:
-        if elem[1]==1:
-            break
-        else:
-            repeated.append((elem[0], 1, elem[1]))
-    # Sort longest first
+    
     repeated.sort(key=lambda x: (-x[1], x[0]))
 
     # Keep only maximal repeats
@@ -62,6 +55,14 @@ def repeated_substrings(s: str):
 
         if not subsumed:
             result.append((substr, length, count))
+
+    # specially consider repeated 1-strings (chars)
+    for elem in char_counts:
+        if elem[1]==1:
+            break
+        else:
+            result.append((elem[0], 1, elem[1]))
+    # Sort longest first
 
     return result
 
@@ -88,7 +89,7 @@ def palindromic_blocks_all(text: str):
         if best_left is not None:
             result = text[best_left : best_right + 1]
             if len(set(result)) > 1:
-                yield result
+                yield best_left, best_right, result
 
     # ---- Even-length palindromes ----
     for left_center in range(text_length - 1):
@@ -109,7 +110,7 @@ def palindromic_blocks_all(text: str):
         if best_left is not None:
             result = text[best_left : best_right + 1]
             if len(set(result)) > 1:
-                yield result
+                yield best_left, best_right, result
 
 ##### BOOKENDS #####
 def maximal_bookend(text: str):
@@ -138,12 +139,12 @@ def character_blocks(text: str):
         block_length = end_index - start_index + 1
 
         if block_length > 1:
-            yield text[start_index : end_index + 1]
+            yield start_index, end_index, text[start_index : end_index + 1]
 
         index += 1
 
 ##### VOWEL TO CONSONANT RATIO Z-SCORE #####
-def vowel_z_score(s: str) -> float:
+def vowel_ratio_rarity_z_score(s: str) -> float:
     """
     Computes the Z-score of the observed vowel count
     against the expected vowel ratio (5/26).
@@ -185,6 +186,44 @@ def string_entropy(s: str) -> float:
         entropy -= p * math.log2(p)
 
     return entropy
+
+def entropy_avg(x):
+    a = 15.89321934
+    b = -0.8297682291
+    c = -0.8237059174
+    d = 0.01270597934
+    e = -14.2437712
+
+    entropy_mean = (
+        a * x**(1/8)
+        + b * x**(1/4)
+        + c * x**(1/2)
+        + d * x
+        + e
+    )
+    return (entropy_mean)
+
+def entropy_avg_std(x):
+    a = -0.002459635337
+    b = 0.3639055228
+    c = 2.334252499
+    d = 0.2123435647
+
+    entropy_std = (
+        a * x
+        + b * x**(-1)
+        + c * x**(-2)
+        + d
+    )
+    return (entropy_std)
+
+entropy_avgs = [entropy_avg(x) for x in range(1,33)]
+entropy_avg_stds = [entropy_avg_std(x) for x in range(1,33)]
+
+def entropy_rarity_z_score(s):
+    e = string_entropy(s)
+    rarity_z_score = (e - entropy_avg(len(s))) / entropy_avg_std(len(s))
+    return e, rarity_z_score
 
 ############################ ENGLISH-RELATED PARAMETERS ############################
 
@@ -253,11 +292,11 @@ def find_words_in_string(s: str, trie: TrieNode, min_length: int = 3):
             length = j - i + 1
 
             if node.is_word and length >= min_length:
-                results.append((i, j + 1, s[i:j + 1], length))
+                results.append((i, j + 1, s[i:j + 1]))
 
             j += 1
 
-    results.sort(key=lambda x: x[3], reverse=True)
+    results.sort(key=lambda x: x[1]-x[0], reverse=True)
     return results
 
 
