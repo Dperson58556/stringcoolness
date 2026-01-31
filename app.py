@@ -80,8 +80,8 @@ def generate_scored_string(length):
 
     return {
         "random_string": random_string,
-        "repeated_1_strs": repeated_1_strs,
-        "repeated_chunks": repeated_chunks,
+        # "repeated_1_strs": repeated_1_strs,
+        # "repeated_chunks": repeated_chunks,
         "bookend": bookend,
         "palindromes": palindromes,
         "char_blocks": char_blocks,
@@ -107,7 +107,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("scratch.html")
 
 @app.route("/generate")
 def generate():

@@ -1,48 +1,210 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Hi</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="">
-    </head>
-    <body>
-        <p>Hello There</p>
+  <head>
+    <meta charset="utf-8">
+    <title>String Card</title>
 
-        <div id="results"></div>
+    <style>
+      body {
+        font-family: monospace;
+        background: #0f0f0f;
+        color: #eee;
+        padding: 20px;
+      }
 
-        <script>
-            async function generate() {
-                const length = 16
-                const res = await fetch(`/generate?length=${length}`);
-                const data = await res.json();
-                
-                const resultsDiv = document.getElementById("results");
-                resultsDiv.innerHTML = ""; // clear previous results
-                
-                for (const [key, value] of Object.entries(data)) {
-                    const row = document.createElement("div");
+      button {
+        margin-left: 8px;
+      }
 
-                    const title = document.createElement("strong");
-                    title.textContent = key + ": ";
+      /* --- Card --- */
 
-                    const content = document.createElement("span");
+      .card {
+        width: 360px;
+        background: #1b1b1b;
+        border-radius: 14px;
+        padding: 16px;
+        margin-top: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      }
 
-                    // Handle arrays / objects nicely
-                    if (typeof value === "object") {
-                        content.textContent = JSON.stringify(value, null, 2);
-                        content.style.whiteSpace = "normal"; //"normal|nowrap|pre|initial|inherit"
-                    } else {
-                        content.textContent = value;
-                    }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
+      }
 
-                    row.appendChild(title);
-                    row.appendChild(content);
-                    resultsDiv.appendChild(row);
-                }
-            }
-        </script>
-    </body>
+      .card-title {
+        font-size: 18px;
+        font-weight: bold;
+        letter-spacing: 1px;
+      }
+
+      .card-score {
+        font-size: 20px;
+        color: #ffd700;
+      }
+
+      .string-display {
+        font-size: 16px;
+        letter-spacing: 2px;
+        background: #111;
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        text-align: center;
+      }
+
+      .stats {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+
+      .stat {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .stat-name {
+        color: #aaa;
+      }
+
+      .stat-value {
+        font-weight: bold;
+      }
+
+      .subsection {
+        margin-top: 10px;
+      }
+
+      .subsection-title {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: #333;
+        margin: 2px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <h1>String Scorer</h1>
+
+    <label>
+      Length:
+      <input id="length" type="number" value="8">
+    </label>
+    <button onclick="generate()">Generate</button>
+
+    <div id="results"></div>
+
+    <script>
+      async function generate() {
+        const length = document.getElementById("length").value;
+        const res = await fetch(`/generate?length=${length}`);
+        const data = await res.json();
+
+        const obj = Array.isArray(data) ? data[0] : data;
+
+        const results = document.getElementById("results");
+        results.innerHTML = "";
+
+        results.appendChild(createCard(obj));
+      }
+
+      function createCard(data) {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        /* --- Header --- */
+        const header = document.createElement("div");
+        header.className = "card-header";
+
+        const title = document.createElement("div");
+        title.className = "card-title";
+        title.textContent = "STRING";
+
+        const score = document.createElement("div");
+        score.className = "card-score";
+        score.textContent = data.total_points.toFixed(2);
+
+        header.appendChild(title);
+        header.appendChild(score);
+
+        /* --- String Display --- */
+        const stringDisplay = document.createElement("div");
+        stringDisplay.className = "string-display";
+        stringDisplay.textContent = data.random_string;
+
+        /* --- Stats --- */
+        const stats = document.createElement("div");
+        stats.className = "stats";
+
+        stats.appendChild(makeStat("Length", data.random_string.length));
+        stats.appendChild(makeStat("Entropy", data.entropy));
+        stats.appendChild(makeStat("Percent Unique", data.percent_unique));
+
+        /* --- Repeated Substrings --- */
+        const repeatsSection = document.createElement("div");
+        repeatsSection.className = "subsection";
+
+        const repeatsTitle = document.createElement("div");
+        repeatsTitle.className = "subsection-title";
+        repeatsTitle.textContent = "Repeated Substrings";
+
+        repeatsSection.appendChild(repeatsTitle);
+
+        if (data.repeated_1_strs && data.repeated_1_strs.length > 0) {
+          data.repeated_1_strs.forEach(r => {
+            const pill = document.createElement("span");
+            pill.className = "pill";
+            pill.textContent = `${r.substr} ×${r.count}`;
+            repeatsSection.appendChild(pill);
+          });
+        } else {
+          const none = document.createElement("div");
+          none.className = "pill";
+          none.textContent = "None";
+          repeatsSection.appendChild(none);
+        }
+
+        /* --- Assemble Card --- */
+        card.appendChild(header);
+        card.appendChild(stringDisplay);
+        card.appendChild(stats);
+        card.appendChild(repeatsSection);
+
+        return card;
+      }
+
+      function makeStat(name, value) {
+        const row = document.createElement("div");
+        row.className = "stat";
+
+        const label = document.createElement("div");
+        label.className = "stat-name";
+        label.textContent = name;
+
+        const val = document.createElement("div");
+        val.className = "stat-value";
+        val.textContent = value;
+
+        row.appendChild(label);
+        row.appendChild(val);
+        return row;
+      }
+    </script>
+
+  </body>
 </html>
