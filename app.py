@@ -20,13 +20,19 @@ def generate_scored_string(length, word = None):
     char_counts = dict(fi.Counter(random_string))
     for char in char_counts:
         repeated_1_strs[char] = char_counts[char]
-        
+
     repeated_chunks = {}
     for elem in fi.repeated_substrings(random_string):
         repeated_chunks[elem[0]] = elem[2]
 
     palindromes = list(fi.palindromic_blocks_all(random_string))
     char_blocks = list(fi.character_blocks(random_string))
+    char_blocks_dict = {}
+    for elem in char_blocks:
+        if elem[2] not in char_blocks_dict:
+            char_blocks_dict[elem[2]] = 1
+        else:
+            char_blocks_dict[elem[2]] += 1
     percent_unique = fi.pct_unique(random_string)
     vowel_ratio_rarity = fi.vowel_ratio_rarity_z_score(random_string)
     entropy, entropy_rarity = fi.entropy_rarity_z_score(random_string)
@@ -87,6 +93,7 @@ def generate_scored_string(length, word = None):
         "bookend": bookend,
         "palindromes": palindromes,
         "char_blocks": char_blocks,
+        "char_blocks_dict": char_blocks_dict,
         "words_within": words_within,
         "percent_unique": round(percent_unique,5),
         "vowel_ratio_rarity": round(vowel_ratio_rarity, 5),

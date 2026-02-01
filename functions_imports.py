@@ -57,7 +57,6 @@ def repeated_substrings(s: str):
             result.append((substr, length, count))
 
     # Sort longest first
-
     return result
 
 ##### PALINDROMIC BLOCKS (NO MONO-CHARACTER BLOCKS) #####

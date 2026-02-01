@@ -42,6 +42,7 @@
 
       .card-score {
         font-size: 20px;
+        font-weight: bolder;
         color: #ffd700;
       }
 
@@ -87,8 +88,11 @@
       }
 
       .pill0 {
-        display: inline-block;
-        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
         border-radius: 6px;
         background: #030303;
         margin: 2px;
@@ -97,17 +101,24 @@
       }
 
       .pill1 {
-        display: inline-block;
-        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
         border-radius: 6px;
         background: #333;
         margin: 2px;
         font-size: 12px;
+        color: #aaaaaa
       }
 
       .pill2 {
-        display: inline-block;
-        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
         border-radius: 6px;
         background: rgb(0, 128, 24);
         margin: 2px;
@@ -115,8 +126,11 @@
       }
 
       .pill3 {
-        display: inline-block;
-        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
         border-radius: 6px;
         background: rgb(0, 119, 255);
         margin: 2px;
@@ -124,8 +138,11 @@
       }
 
       .pill4 {
-        display: inline-block;
-        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
         border-radius: 6px;
         background: rgb(191, 0, 255);
         margin: 2px;
@@ -133,8 +150,11 @@
       }
 
       .pill5 {
-        display: inline-block;
-        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
         border-radius: 6px;
         background: rgb(183, 101, 0);
         margin: 2px;
@@ -142,8 +162,11 @@
       }
 
       .pill6 {
-        display: inline-block;
-        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
         border-radius: 6px;
         background: rgb(167, 137, 0);
         margin: 2px;
@@ -151,8 +174,11 @@
       }
 
       .pill7 {
-        display: inline-block;
-        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
         border-radius: 6px;
         background: rgb(255, 0, 34);
         margin: 2px;
@@ -224,7 +250,7 @@
 
         const score = document.createElement("div");
         score.className = "card-score";
-        score.textContent = data.total_points.toFixed(2);
+        score.textContent = data.total_points;
 
         header.appendChild(title);
         header.appendChild(score);
@@ -257,11 +283,13 @@
 
         letters.split("").forEach(letter => {
           const pill = document.createElement("span");
-
+          const color_threshold = 7
           if (repeats[letter]) {
             pill.className = `pill${Math.min(color_threshold, repeats[letter])}`;
             if (repeats[letter] < 10) {
-              pill.textContent = `${letter} ×${repeats[letter]}`;
+              if (repeats[letter] != 1) { 
+                pill.textContent = `${letter} ×${repeats[letter]}`; 
+              } else { pill.textContent = `${letter}`; }
             } else {
               pill.textContent = `${letter}×${repeats[letter]}`;
             }
@@ -272,7 +300,6 @@
 
           repeatsCharSection.appendChild(pill);
         });
-
 
         /* --- Repeated Chunks --- */
         const repeatsSection = document.createElement("div");
@@ -299,18 +326,111 @@
         }
         else {
           const none = document.createElement("div");
-          none.className = "pill";
-          none.textContent = "None";
+          none.className = "pill0";
+          none.textContent = "-";
           repeatsSection.appendChild(none);
         }
 
+        /* --- Character Blocks --- */
+        const blocksSection = document.createElement("div");
+        blocksSection.className = "subsection";
+
+        const blocksTitle = document.createElement("div");
+        blocksTitle.className = "subsection-title";
+        blocksTitle.textContent = "Character Blocks";
+
+        blocksSection.appendChild(blocksTitle);
+
+        if (data.char_blocks_dict && Object.keys(data.char_blocks_dict).length > 0) {
+          Object.keys(data.char_blocks_dict).forEach(key => {
+            const r = {
+              substr: key,
+              count: data.char_blocks_dict[key]
+            };
+            const pill = document.createElement("span");
+            const color_threshold = 7
+            pill.className = `pill${Math.min(color_threshold, r.substr.length)}`;
+            pill.textContent = `${r.substr} ×${r.count}`;
+            blocksSection.appendChild(pill);
+          });
+        }
+        else {
+          const none = document.createElement("div");
+          none.className = "pill0";
+          none.textContent = "-";
+          blocksSection.appendChild(none);
+        }
+
+        /* --- Palindromic Blocks --- */
+        const palindromesSection = document.createElement("div");
+        palindromesSection.className = "subsection";
+
+        const palindromesTitle = document.createElement("div");
+        palindromesTitle.className = "subsection-title";
+        palindromesTitle.textContent = "Palindromes Within";
+
+        palindromesSection.appendChild(palindromesTitle);
+
+        if (data.palindromes && data.palindromes.length > 0) {
+          data.palindromes.forEach(key => {
+            const r = {
+              substr: key[2],
+              word_len: key[2].length
+            };
+            const pill = document.createElement("span");
+            const color_threshold = 7
+            pill.className = `pill${Math.min(color_threshold, r.word_len - 1)}`;
+            pill.textContent = `${r.substr}`;
+            palindromesSection.appendChild(pill);
+          });
+        }
+        else {
+          const none = document.createElement("div");
+          none.className = "pill0";
+          none.textContent = "-";
+          palindromesSection.appendChild(none);
+        }
+
+
+        /* --- Words Within --- */
+        const wordsWithinSection = document.createElement("div");
+        wordsWithinSection.className = "subsection";
+
+        const wordsWithinTitle = document.createElement("div");
+        wordsWithinTitle.className = "subsection-title";
+        wordsWithinTitle.textContent = "Words Within";
+
+        wordsWithinSection.appendChild(wordsWithinTitle);
+
+        if (data.words_within && data.words_within.length > 0) {
+          data.words_within.forEach(key => {
+            const r = {
+              substr: key[2],
+              word_len: key[2].length
+            };
+            const pill = document.createElement("span");
+            const color_threshold = 7
+            pill.className = `pill${Math.min(color_threshold, r.word_len - 1)}`;
+            pill.textContent = `${r.substr}`;
+            wordsWithinSection.appendChild(pill);
+          });
+        }
+        else {
+          const none = document.createElement("div");
+          none.className = "pill0";
+          none.textContent = "-";
+          wordsWithinSection.appendChild(none);
+        }
 
         /* --- Assemble Card --- */
         card.appendChild(header);
         card.appendChild(stringDisplay);
         card.appendChild(stats);
         card.appendChild(repeatsCharSection);
-        card.appendChild(repeatsSection)
+        card.appendChild(repeatsSection);
+        card.appendChild(blocksSection);
+        card.appendChild(wordsWithinSection);
+        card.appendChild(palindromesSection);
 
         return card;
       }
