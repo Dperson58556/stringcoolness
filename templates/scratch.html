@@ -33,25 +33,26 @@
       }
 
       .card-title {
-        font-size: 18px;
-        font-weight: bold;
+        font-size: 38px;
+        font-weight: bolder;
         letter-spacing: 1px;
       }
 
       .card-score {
-        font-size: 20px;
-        font-weight: bolder;
+        font-size: 30px;
+        font-weight: bold;
         color: #ffd700;
       }
 
       .string-display {
-        font-size: 16px;
+        font-size: 18px;
         letter-spacing: 2px;
         background: #111;
         padding: 8px;
         border-radius: 6px;
         margin-bottom: 12px;
         text-align: center;
+        font-weight: bold;
       }
 
       .stats {
@@ -282,7 +283,7 @@
 
         const title = document.createElement("div");
         title.className = "card-title";
-        title.textContent = "STRING";
+        title.textContent = data.random_string.length;
 
         const score = document.createElement("div");
         score.className = "card-score";
@@ -314,6 +315,11 @@
         stats.appendChild(makeStat("ENTROPY", data.entropy));
         stats.appendChild(makeStat("ENTROPY RARITY", data.entropy_rarity));
         stats.appendChild(makeStat("VOWEL RATIO RARITY", data.vowel_ratio_rarity));
+        if (data.bookend != null){
+          stats.appendChild(makeStat("BOOKEND", data.bookend[0]));
+        } else {
+          stats.appendChild(makeStat("BOOKEND", 0));
+        }
 
         ////////////////////////// Repeated Characters//////////////////////////
         const repeatsCharSection = document.createElement("div");
@@ -438,8 +444,7 @@
           palindromesSection.appendChild(none);
         }
 
-
-        ////////////////////////// Words Within//////////////////////////
+                ////////////////////////// Words Within//////////////////////////
         const wordsWithinSection = document.createElement("div");
         wordsWithinSection.className = "subsection";
 
@@ -477,8 +482,9 @@
         card.appendChild(repeatsCharSection);
         card.appendChild(repeatsSection);
         card.appendChild(blocksSection);
-        card.appendChild(wordsWithinSection);
         card.appendChild(palindromesSection);
+        card.appendChild(wordsWithinSection);
+        
 
         return card;
       }

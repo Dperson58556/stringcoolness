@@ -27,7 +27,7 @@ def generate_scored_string(length, word = None):
 
     palindromes = list(fi.palindromic_blocks_all(random_string))
     palindromes.sort(key=lambda x: len(x[2]), reverse = True)
-    
+
     char_blocks = list(fi.character_blocks(random_string))
     char_blocks.sort(key=lambda x: len(x[2]), reverse = True)
 
@@ -57,9 +57,9 @@ def generate_scored_string(length, word = None):
     # BONUSES
     letter_points           = sum((fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)) for letter in random_string)
     length_bonus            = 1 + ((length**1.25)/20)
-    entropy_bonus           = 1 + abs(entropy_rarity)
-    vowel_ratio_bonus       = 1 + abs(vowel_ratio_rarity)
-    bookend_bonus           = bookend[0]*5 if bookend is not None else 1
+    entropy_bonus           = 1 + 2 * abs(entropy_rarity)
+    vowel_ratio_bonus       = 1 + 2 * abs(vowel_ratio_rarity)
+    bookend_bonus           = bookend[0]*4 if bookend is not None else 1
     
     for palindrome in palindromes:
         palindrome_letter_bonus = 0
@@ -69,7 +69,7 @@ def generate_scored_string(length, word = None):
     
     for word in words_within:
         for char in word[2]:
-            words_within_bonus += fi.letter_values[char]*(len(word[2])**4)
+            words_within_bonus += fi.letter_values[char]*(len(word[2])**4.5)
 
     for block in char_blocks:
         for char in block[2]:
