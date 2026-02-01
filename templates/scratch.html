@@ -86,11 +86,75 @@
         text-transform: uppercase;
       }
 
-      .pill {
+      .pill0 {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: #030303;
+        margin: 2px;
+        font-size: 12px;
+        color: #333333
+      }
+
+      .pill1 {
         display: inline-block;
         padding: 2px 6px;
         border-radius: 6px;
         background: #333;
+        margin: 2px;
+        font-size: 12px;
+      }
+
+      .pill2 {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgb(0, 128, 24);
+        margin: 2px;
+        font-size: 12px;
+      }
+
+      .pill3 {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgb(0, 119, 255);
+        margin: 2px;
+        font-size: 12px;
+      }
+
+      .pill4 {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgb(191, 0, 255);
+        margin: 2px;
+        font-size: 12px;
+      }
+
+      .pill5 {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgb(183, 101, 0);
+        margin: 2px;
+        font-size: 12px;
+      }
+
+      .pill6 {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgb(167, 137, 0);
+        margin: 2px;
+        font-size: 12px;
+      }
+
+      .pill7 {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgb(255, 0, 34);
         margin: 2px;
         font-size: 12px;
       }
@@ -101,11 +165,21 @@
 
     <h1>String Scorer</h1>
 
-    <label>
-      Length:
-      <input id="length" type="number" value="8">
-    </label>
-    <button onclick="generate()">Generate</button>
+    <div>
+      <label>
+        Length:
+        <input id="length" type="number" value="8">
+      </label>
+      <button onclick="generate()">Generate</button>
+    </div>
+
+    <div>
+      <label>
+        test_string:
+        <input id="test_string" type="text" value="teststring">
+      </label>
+      <button onclick="generate_test_string()">Generate</button>
+    </div>
 
     <div id="results"></div>
 
@@ -115,6 +189,19 @@
         const res = await fetch(`/generate?length=${length}`);
         const data = await res.json();
 
+        const obj = Array.isArray(data) ? data[0] : data;
+
+        const results = document.getElementById("results");
+        results.innerHTML = "";
+
+        results.appendChild(createCard(obj));
+      }
+
+      async function generate_test_string() {
+        const test_string = document.getElementById("test_string").value;
+        const res = await fetch(`/generate_test_string?test_string=${test_string}`);
+        const data = await res.json();
+        
         const obj = Array.isArray(data) ? data[0] : data;
 
         const results = document.getElementById("results");
@@ -155,40 +242,84 @@
         stats.appendChild(makeStat("Entropy", data.entropy));
         stats.appendChild(makeStat("Percent Unique", data.percent_unique));
 
-        /* --- Repeated Substrings --- */
+        /* --- Repeated Characters --- */
+        const repeatsCharSection = document.createElement("div");
+        repeatsCharSection.className = "subsection";
+
+        const repeatsCharTitle = document.createElement("div");
+        repeatsCharTitle.className = "subsection-title";
+        repeatsCharTitle.textContent = "Repeated Characters";
+
+        repeatsCharSection.appendChild(repeatsCharTitle);
+
+        const letters = "abcdefghijklmnopqrstuvwxyz";
+        const repeats = data.repeated_1_strs ?? {};
+
+        letters.split("").forEach(letter => {
+          const pill = document.createElement("span");
+
+          if (repeats[letter]) {
+            pill.className = `pill${Math.min(color_threshold, repeats[letter])}`;
+            if (repeats[letter] < 10) {
+              pill.textContent = `${letter} ×${repeats[letter]}`;
+            } else {
+              pill.textContent = `${letter}×${repeats[letter]}`;
+            }
+          } else {
+            pill.className = "pill0";
+            pill.textContent = letter;
+          }
+
+          repeatsCharSection.appendChild(pill);
+        });
+
+
+        /* --- Repeated Chunks --- */
         const repeatsSection = document.createElement("div");
         repeatsSection.className = "subsection";
 
         const repeatsTitle = document.createElement("div");
         repeatsTitle.className = "subsection-title";
-        repeatsTitle.textContent = "Repeated Substrings";
+        repeatsTitle.textContent = "Repeated Chunks";
 
         repeatsSection.appendChild(repeatsTitle);
 
-        if (data.repeated_1_strs && data.repeated_1_strs.length > 0) {
-          data.repeated_1_strs.forEach(r => {
+        if (data.repeated_chunks && Object.keys(data.repeated_chunks).length > 0) {
+          Object.keys(data.repeated_chunks).forEach(key => {
+            const r = {
+              substr: key,
+              count: data.repeated_chunks[key]
+            };
             const pill = document.createElement("span");
-            pill.className = "pill";
+            const color_threshold = 7
+            pill.className = `pill${Math.min(color_threshold, r.substr.length)}`;
             pill.textContent = `${r.substr} ×${r.count}`;
             repeatsSection.appendChild(pill);
           });
-        } else {
+        }
+        else {
           const none = document.createElement("div");
           none.className = "pill";
           none.textContent = "None";
           repeatsSection.appendChild(none);
         }
 
+
         /* --- Assemble Card --- */
         card.appendChild(header);
         card.appendChild(stringDisplay);
         card.appendChild(stats);
-        card.appendChild(repeatsSection);
+        card.appendChild(repeatsCharSection);
+        card.appendChild(repeatsSection)
 
         return card;
       }
 
       function makeStat(name, value) {
+        if (name == "Percent Unique"){
+          value = value * 100.00
+        };
+
         const row = document.createElement("div");
         row.className = "stat";
 
@@ -198,7 +329,10 @@
 
         const val = document.createElement("div");
         val.className = "stat-value";
-        val.textContent = value;
+        if (name == "Percent Unique") {
+          val.textContent = `${value}%`;
+        } else 
+        { val.textContent = value; };
 
         row.appendChild(label);
         row.appendChild(val);

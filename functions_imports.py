@@ -56,12 +56,6 @@ def repeated_substrings(s: str):
         if not subsumed:
             result.append((substr, length, count))
 
-    # specially consider repeated 1-strings (chars)
-    for elem in char_counts:
-        if elem[1]==1:
-            break
-        else:
-            result.append((elem[0], 1, elem[1]))
     # Sort longest first
 
     return result

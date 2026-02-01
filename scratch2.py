@@ -1,3 +1,8 @@
-mydict = {1: 'a', 2: 'b', 3: 'c'}
+from collections import Counter
 
-print(mydict.values())
+random_string = "hrtbjgfvhbtjgnjkh"
+
+repeated_1_strs = {}
+myDict = dict(Counter(random_string))
+for elem in myDict:
+    repeated_1_strs[elem] = myDict[elem]

@@ -7,21 +7,23 @@ english_trie = fi.load_dictionary_trie("dict.txt")
 ###########################################
 ############### FINAL SCORE ###############
 ###########################################
-def generate_scored_string(length):
+def generate_scored_string(length, word = None):
     ##### GENERATE RANDOM STRING #####
     random_string = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=length))
-    #random_string = 'lblblblblbghyghyghyghy'
+    if word:
+        random_string = word
 
     ##### GRAB PARAMETERS #####
     words_within = fi.find_words_in_string(random_string, english_trie, min_length=3)
 
     repeated_1_strs = {}
+    char_counts = dict(fi.Counter(random_string))
+    for char in char_counts:
+        repeated_1_strs[char] = char_counts[char]
+        
     repeated_chunks = {}
     for elem in fi.repeated_substrings(random_string):
-        if elem[1] == 1:
-            repeated_1_strs[elem[0]] = elem[2]
-        else:
-            repeated_chunks[elem[0]] = elem[2]
+        repeated_chunks[elem[0]] = elem[2]
 
     palindromes = list(fi.palindromic_blocks_all(random_string))
     char_blocks = list(fi.character_blocks(random_string))
@@ -80,8 +82,8 @@ def generate_scored_string(length):
 
     return {
         "random_string": random_string,
-        # "repeated_1_strs": repeated_1_strs,
-        # "repeated_chunks": repeated_chunks,
+        "repeated_1_strs": repeated_1_strs,
+        "repeated_chunks": repeated_chunks,
         "bookend": bookend,
         "palindromes": palindromes,
         "char_blocks": char_blocks,
@@ -108,6 +110,15 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     return render_template("scratch.html")
+
+@app.route("/generate_test_string")
+def generate_test_string():
+    test_string = str(request.args.get("test_string"))
+    rolls = int(request.args.get("rolls", 1))
+
+    results = [generate_scored_string(len(test_string), test_string) for _ in range(rolls)]
+
+    return jsonify(results)
 
 @app.route("/generate")
 def generate():

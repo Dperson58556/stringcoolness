@@ -1,13 +1,28 @@
-{
-    'string': 'zpzphfbhicgsmibt', 
-    'repeated_chars': [ {'char': 'z', 'count': 2}, 
-                        {'char': 'p', 'count': 2}, 
-                        {'char': 'h', 'count': 2}, 
-                        {'char': 'b', 'count': 2}, 
-                        {'char': 'i', 'count': 2} ], 
-    'percent_unique': 0.375, 
-    'rawpoints': 80, 
-    'blockbonus': 1.0, 
-    'bellcurve': 0.125, 
-    'points': 138.34906721634093
-}
+/* --- Repeated Characters --- */
+        const repeatsCharSection = document.createElement("div");
+        repeatsCharSection.className = "subsection";
+
+        const repeatsCharTitle = document.createElement("div");
+        repeatsCharTitle.className = "subsection-title";
+        repeatsCharTitle.textContent = "Repeated Characters";
+
+        repeatsCharSection.appendChild(repeatsCharTitle);
+
+        if (data.repeated_1_strs && Object.keys(data.repeated_1_strs).length > 0) {
+          Object.keys(data.repeated_1_strs).forEach(key => {
+            const r = {
+              substr: key,
+              count: data.repeated_1_strs[key]
+            };
+            const pill = document.createElement("span");
+            pill.className = `pill${r.substr.length}`;
+            pill.textContent = `${r.substr} ×${r.count}`;
+            repeatsCharSection.appendChild(pill);
+          });
+        }
+        else {
+          const none = document.createElement("div");
+          none.className = "pill";
+          none.textContent = "None";
+          repeatsCharSection.appendChild(none);
+        }

@@ -1,0 +1,28 @@
+/* --- Repeated Chunks --- */
+        const repeatsSection = document.createElement("div");
+        repeatsSection.className = "subsection";
+
+        const repeatsTitle = document.createElement("div");
+        repeatsTitle.className = "subsection-title";
+        repeatsTitle.textContent = "Repeated Chunks";
+
+        repeatsSection.appendChild(repeatsTitle);
+
+        if (data.repeated_chunks && Object.keys(data.repeated_chunks).length > 0) {
+          Object.keys(data.repeated_chunks).forEach(key => {
+            const r = {
+              substr: key,
+              count: data.repeated_chunks[key]
+            };
+            const pill = document.createElement("span");
+            pill.className = `pill${r.substr.length}`;
+            pill.textContent = `${r.substr} ×${r.count}`;
+            repeatsSection.appendChild(pill);
+          });
+        }
+        else {
+          const none = document.createElement("div");
+          none.className = "pill";
+          none.textContent = "None";
+          repeatsSection.appendChild(none);
+        }
