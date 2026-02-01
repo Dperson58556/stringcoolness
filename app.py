@@ -26,7 +26,11 @@ def generate_scored_string(length, word = None):
         repeated_chunks[elem[0]] = elem[2]
 
     palindromes = list(fi.palindromic_blocks_all(random_string))
+    palindromes.sort(key=lambda x: len(x[2]), reverse = True)
+    
     char_blocks = list(fi.character_blocks(random_string))
+    char_blocks.sort(key=lambda x: len(x[2]), reverse = True)
+
     char_blocks_dict = {}
     for elem in char_blocks:
         if elem[2] not in char_blocks_dict:

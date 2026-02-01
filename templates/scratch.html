@@ -16,8 +16,6 @@
         margin-left: 8px;
       }
 
-      /* --- Card --- */
-
       .card {
         width: 360px;
         background: #1b1b1b;
@@ -69,7 +67,7 @@
       }
 
       .stat-name {
-        color: #aaa;
+        color: #ffffff;
       }
 
       .stat-value {
@@ -168,9 +166,10 @@
         padding: 2px 0px;
         width: 64px;
         border-radius: 6px;
-        background: rgb(167, 137, 0);
+        background: rgb(239, 203, 26);
         margin: 2px;
         font-size: 12px;
+        color: #222222;
       }
 
       .pill7 {
@@ -183,6 +182,43 @@
         background: rgb(255, 0, 34);
         margin: 2px;
         font-size: 12px;
+      }
+
+      .pill8 {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
+        border-radius: 6px;
+        background: rgb(255, 139, 183);
+        margin: 2px;
+        font-size: 12px;
+      }
+
+      .pill9 {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
+        border-radius: 6px;
+        background: rgb(66, 31, 0);
+        margin: 2px;
+        font-size: 12px;
+      }
+
+      .pill9 {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 0px;
+        width: 64px;
+        border-radius: 6px;
+        background: rgb(173, 251, 255);
+        margin: 2px;
+        font-size: 12px;
+        color: #222222
       }
     </style>
   </head>
@@ -240,7 +276,7 @@
         const card = document.createElement("div");
         card.className = "card";
 
-        /* --- Header --- */
+        ////////////////////////// Header//////////////////////////
         const header = document.createElement("div");
         header.className = "card-header";
 
@@ -255,20 +291,31 @@
         header.appendChild(title);
         header.appendChild(score);
 
-        /* --- String Display --- */
+        ////////////////////////// String Display//////////////////////////
         const stringDisplay = document.createElement("div");
         stringDisplay.className = "string-display";
         stringDisplay.textContent = data.random_string;
 
-        /* --- Stats --- */
+        ////////////////////////// Stats//////////////////////////
+        const statsTitleHolder = document.createElement("div");
+        statsTitleHolder.className = "subsection";
+
+        const statsTitle = document.createElement("div");
+        statsTitle.className = "subsection-title";
+        statsTitle.textContent = "Statistics";
+
+        statsTitleHolder.appendChild(statsTitle);
+
         const stats = document.createElement("div");
         stats.className = "stats";
 
-        stats.appendChild(makeStat("Length", data.random_string.length));
-        stats.appendChild(makeStat("Entropy", data.entropy));
-        stats.appendChild(makeStat("Percent Unique", data.percent_unique));
+        stats.appendChild(makeStat("LENGTH", data.random_string.length));
+        stats.appendChild(makeStat("% UNIQUE", data.percent_unique));
+        stats.appendChild(makeStat("ENTROPY", data.entropy));
+        stats.appendChild(makeStat("ENTROPY RARITY", data.entropy_rarity));
+        stats.appendChild(makeStat("VOWEL RATIO RARITY", data.vowel_ratio_rarity));
 
-        /* --- Repeated Characters --- */
+        ////////////////////////// Repeated Characters//////////////////////////
         const repeatsCharSection = document.createElement("div");
         repeatsCharSection.className = "subsection";
 
@@ -283,15 +330,15 @@
 
         letters.split("").forEach(letter => {
           const pill = document.createElement("span");
-          const color_threshold = 7
+          const color_threshold = 9
           if (repeats[letter]) {
             pill.className = `pill${Math.min(color_threshold, repeats[letter])}`;
             if (repeats[letter] < 10) {
               if (repeats[letter] != 1) { 
-                pill.textContent = `${letter} ×${repeats[letter]}`; 
+                pill.textContent = `${letter} × ${repeats[letter]}`; 
               } else { pill.textContent = `${letter}`; }
             } else {
-              pill.textContent = `${letter}×${repeats[letter]}`;
+              pill.textContent = `${letter} ×${repeats[letter]}`;
             }
           } else {
             pill.className = "pill0";
@@ -301,7 +348,7 @@
           repeatsCharSection.appendChild(pill);
         });
 
-        /* --- Repeated Chunks --- */
+        ////////////////////////// Repeated Chunks//////////////////////////
         const repeatsSection = document.createElement("div");
         repeatsSection.className = "subsection";
 
@@ -318,7 +365,7 @@
               count: data.repeated_chunks[key]
             };
             const pill = document.createElement("span");
-            const color_threshold = 7
+            const color_threshold = 9
             pill.className = `pill${Math.min(color_threshold, r.substr.length)}`;
             pill.textContent = `${r.substr} ×${r.count}`;
             repeatsSection.appendChild(pill);
@@ -331,7 +378,7 @@
           repeatsSection.appendChild(none);
         }
 
-        /* --- Character Blocks --- */
+        ////////////////////////// Character Blocks//////////////////////////
         const blocksSection = document.createElement("div");
         blocksSection.className = "subsection";
 
@@ -348,7 +395,7 @@
               count: data.char_blocks_dict[key]
             };
             const pill = document.createElement("span");
-            const color_threshold = 7
+            const color_threshold = 9
             pill.className = `pill${Math.min(color_threshold, r.substr.length)}`;
             pill.textContent = `${r.substr} ×${r.count}`;
             blocksSection.appendChild(pill);
@@ -361,7 +408,7 @@
           blocksSection.appendChild(none);
         }
 
-        /* --- Palindromic Blocks --- */
+        ////////////////////////// Palindromic Blocks//////////////////////////
         const palindromesSection = document.createElement("div");
         palindromesSection.className = "subsection";
 
@@ -378,7 +425,7 @@
               word_len: key[2].length
             };
             const pill = document.createElement("span");
-            const color_threshold = 7
+            const color_threshold = 9
             pill.className = `pill${Math.min(color_threshold, r.word_len - 1)}`;
             pill.textContent = `${r.substr}`;
             palindromesSection.appendChild(pill);
@@ -392,7 +439,7 @@
         }
 
 
-        /* --- Words Within --- */
+        ////////////////////////// Words Within//////////////////////////
         const wordsWithinSection = document.createElement("div");
         wordsWithinSection.className = "subsection";
 
@@ -409,7 +456,7 @@
               word_len: key[2].length
             };
             const pill = document.createElement("span");
-            const color_threshold = 7
+            const color_threshold = 9
             pill.className = `pill${Math.min(color_threshold, r.word_len - 1)}`;
             pill.textContent = `${r.substr}`;
             wordsWithinSection.appendChild(pill);
@@ -422,9 +469,10 @@
           wordsWithinSection.appendChild(none);
         }
 
-        /* --- Assemble Card --- */
+        ////////////////////////// Assemble Card//////////////////////////
         card.appendChild(header);
         card.appendChild(stringDisplay);
+        card.appendChild(statsTitleHolder);
         card.appendChild(stats);
         card.appendChild(repeatsCharSection);
         card.appendChild(repeatsSection);
@@ -436,7 +484,7 @@
       }
 
       function makeStat(name, value) {
-        if (name == "Percent Unique"){
+        if (name == "% UNIQUE"){
           value = value * 100.00
         };
 
@@ -449,7 +497,7 @@
 
         const val = document.createElement("div");
         val.className = "stat-value";
-        if (name == "Percent Unique") {
+        if (name == "% UNIQUE") {
           val.textContent = `${value}%`;
         } else 
         { val.textContent = value; };
