@@ -82,13 +82,15 @@ def generate_scored_string(length, word = None):
     remaining_bonuses = (palindrome_bonus +
                         words_within_bonus +  
                         char_blocks_bonus +
-                        repeated_chunks_bonus)
+                        repeated_chunks_bonus)*length_bonus
     
     total_points = (letter_points * 
                     length_bonus * 
                     entropy_bonus * 
                     vowel_ratio_bonus * 
                     bookend_bonus) + remaining_bonuses
+
+    card_rarity = fi.get_rarity_from_score(total_points, length)
 
     return {
         "random_string": random_string,
@@ -112,7 +114,8 @@ def generate_scored_string(length, word = None):
         "words_within_bonus": round(words_within_bonus, 5),
         "char_blocks_bonus": round(char_blocks_bonus, 5),
         "repeated_chunks_bonus": round(repeated_chunks_bonus, 5),
-        "total_points": round(total_points)
+        "total_points": round(total_points),
+        "card_rarity": card_rarity
     }
 
 # APPLICATION SETUP

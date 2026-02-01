@@ -25,6 +25,51 @@
         box-shadow: 0 8px 20px rgba(0,0,0,0.5);
       }
 
+      .cardunc {
+        width: 360px;
+        background: #035300;
+        border-radius: 14px;
+        padding: 16px;
+        margin-top: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      }
+
+      .cardrar {
+        width: 360px;
+        background: #190cd5;
+        border-radius: 14px;
+        padding: 16px;
+        margin-top: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      }
+
+      .cardepc {
+        width: 360px;
+        background: #5300ab;
+        border-radius: 14px;
+        padding: 16px;
+        margin-top: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      }
+
+      .cardleg {
+        width: 360px;
+        background: #bc6c04;
+        border-radius: 14px;
+        padding: 16px;
+        margin-top: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      }
+
+      .cardmyth {
+        width: 360px;
+        background: #ff0000;
+        border-radius: 14px;
+        padding: 16px;
+        margin-top: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      }
+
       .card-header {
         display: flex;
         justify-content: space-between;
@@ -275,7 +320,15 @@
 
       function createCard(data) {
         const card = document.createElement("div");
-        card.className = "card";
+        let card_rarities = {
+          "Common":"card",
+          "Uncommon":"cardunc",
+          "Rare":"cardrar",
+          "Epic":"cardepc",
+          "Legendary":"cardleg",
+          "Mythical":"cardmyth"
+        }
+        card.className = card_rarities[data.card_rarity];
 
         ////////////////////////// Header//////////////////////////
         const header = document.createElement("div");

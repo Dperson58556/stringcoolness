@@ -2,6 +2,7 @@ import string
 import random
 from collections import Counter, defaultdict
 import math
+import json
 import matplotlib.pyplot as plt
 
 ############################ STRUCTURE-RELATED PARAMETERS ############################
@@ -293,4 +294,20 @@ def find_words_in_string(s: str, trie: TrieNode, min_length: int = 3):
     return results
 
 
+##### SCORE RELATED PARAMETERS #####
+score_rarity_percentiles = {}
+with open("score_rarity_percentiles.json", "r") as f:
+    score_rarity_percentiles = json.load(f)
 
+def get_rarity_from_score(total_points, length):
+    
+    if total_points < float(score_rarity_percentiles[f"row{length}"][6]): # < 75th Percentile
+        return "Common"
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][7]): # < 90th Percentile
+        return "Uncommon"
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][8]): # < 99th Percentile
+        return "Rare"
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][9]): # < 99.9th Percentile
+        return "Epic"
+    else:
+        return "Legendary"
