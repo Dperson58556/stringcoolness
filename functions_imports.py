@@ -4,7 +4,10 @@ from collections import Counter, defaultdict
 import math
 import json
 import matplotlib.pyplot as plt
+from english_bigrams import ENGLISH
 
+# The above two imports are failing because the correct syntax should be:
+# from random_string_detector.bigrams.english import ENGLISH
 ############################ STRUCTURE-RELATED PARAMETERS ############################
 
 ##### PERCENT UNIQUE #####
@@ -12,12 +15,10 @@ def pct_unique(s: str):
     n = len(s)
     unique_chars = len(set(s))
     return unique_chars / n
-
 ##### REPEATED SUBSTRINGS #####
 def repeated_substrings(s: str):
     n = len(s)
     positions = defaultdict(list)
-    char_counts = Counter(s).most_common()
 
     # Record positions of all substrings
     for i in range(n):
@@ -293,6 +294,16 @@ def find_words_in_string(s: str, trie: TrieNode, min_length: int = 3):
     results.sort(key=lambda x: x[1]-x[0], reverse=True)
     return results
 
+def digram_frequencies():
+    freqs = {}
+    with open("english_digraph_frequencies.txt", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            parts = line.strip().split(" ")
+            digram = parts[0]
+            frequency = float(parts[1])
+            freqs[digram] = frequency
+    return freqs
 
 ##### SCORE RELATED PARAMETERS #####
 score_rarity_percentiles = {}

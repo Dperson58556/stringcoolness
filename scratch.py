@@ -15,7 +15,7 @@ english_trie = fi.load_dictionary_trie("dict.txt")
 ###########################################
 ############### FINAL SCORE ###############
 ###########################################
-def generate_scored_string(length, word = None):
+def generate_scored_string(length, word = None, debug = False):
     ##### GENERATE RANDOM STRING #####
     random_string = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=length))
     if word:
@@ -60,46 +60,52 @@ def generate_scored_string(length, word = None):
     words_within_bonus = 0
     repeated_chunks_bonus = 0
     char_blocks_bonus = 0
+    bigram_bonus = 0 ##################### NOT IMPLEMENTED YET #####################
     total_points = 0
 
     # BONUSES
-    letter_points           = sum((fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)) for letter in random_string)
+    letter_points           = sum((2 * fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)) for letter in random_string)
     length_bonus            = 1 + ((length**1.25)/20)
     entropy_bonus           = 1 + 2 * abs(entropy_rarity)
     vowel_ratio_bonus       = 1 + 2 * abs(vowel_ratio_rarity)
-    bookend_bonus           = bookend[0]*4 if bookend is not None else 1
+    bookend_bonus           = bookend[0]*3 if bookend is not None else 1
+    bigram_bonus            = sum(fi.ENGLISH.get(random_string[i:i+2], 0) for i in range(len(random_string)-1))##################### NOT IMPLEMENTED YET #####################
     
     for palindrome in palindromes:
         palindrome_letter_bonus = 0
         for char in palindrome[2]:
             palindrome_letter_bonus += fi.letter_values[char]
-        palindrome_bonus += ( (palindrome_letter_bonus) * 3 * (len(palindrome[2])**2))**(length_bonus)
+        palindrome_bonus += ( (palindrome_letter_bonus) * 4 * (len(palindrome[2])**3))
     
     for word in words_within:
         for char in word[2]:
-            words_within_bonus += fi.letter_values[char]*(len(word[2])**4.5)**(length_bonus)
+            words_within_bonus += fi.letter_values[char]*(len(word[2])**5)
 
     for block in char_blocks:
         for char in block[2]:
-            char_blocks_bonus += (fi.letter_values[char]*2*(len(block[2])**3))**(length_bonus)
+            char_blocks_bonus += ((2 * fi.letter_values[char])**1.4) * ((len(block[2]))**4)
 
     for chunk in repeated_chunks:
         for char in chunk:
-            repeated_chunks_bonus += fi.letter_values[char]*2*(repeated_chunks[chunk]**2)**(length_bonus)
+            repeated_chunks_bonus += ((2 * fi.letter_values[char])**1.2)*3*(repeated_chunks[chunk]**5)
 
     remaining_bonuses = (palindrome_bonus +
                         words_within_bonus +  
                         char_blocks_bonus +
-                        repeated_chunks_bonus)
+                        repeated_chunks_bonus)*length_bonus
     
-    total_points = (letter_points * 
+    sub_total_points = (letter_points * 
                     length_bonus * 
                     entropy_bonus * 
                     vowel_ratio_bonus * 
                     bookend_bonus) + remaining_bonuses
+    
+    total_points = sub_total_points ** (1.2)
+
+    card_rarity = fi.get_rarity_from_score(total_points, length)
 
     return {
-        # "random_string": random_string,
+        "random_string": random_string,
         # "repeated_1_strs": repeated_1_strs,
         # "repeated_chunks": repeated_chunks,
         # "bookend": bookend,
@@ -120,7 +126,9 @@ def generate_scored_string(length, word = None):
         # "words_within_bonus": round(words_within_bonus, 5),
         # "char_blocks_bonus": round(char_blocks_bonus, 5),
         # "repeated_chunks_bonus": round(repeated_chunks_bonus, 5),
-        "total_points": round(total_points)
+        "bigram_bonus": round(bigram_bonus, 5),
+        "total_points": round(total_points)#,
+        # "card_rarity": card_rarity
     }
 
 
@@ -215,6 +223,19 @@ def lengths_dist_heatmap():
     plt.colorbar(label="count")
     plt.show()
 
+N = 10000
+L = 12
+scores = []
+for i in range(N):
+    s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=L))
+    be = generate_scored_string(L, s)
+    if be["bigram_bonus"] > 150:
+        scores.append([i, be["random_string"], be["total_points"], be["bigram_bonus"]])
+
+scores.sort(key=lambda x: x[3], reverse=True)
+for i, elem in enumerate(scores[:25]):
+    print(f"{i:2}: {elem[0]:8}: {elem[1]} => {elem[2]}  (bigram: {elem[3]})")
+
 #lengths_dist_heatmap()
 # N = 10000000
 # for i in range(N):
@@ -228,19 +249,19 @@ def lengths_dist_heatmap():
 #     print(f"{rs}: z={rs_zscore:8.4f}, e={rs_ent:7.4f}, compsite={rs_zscore / rs_ent:10.4f}")
 
 
-N = 100000
-L = 12
-scores = []
-# for _ in range(N):
-#     scores.append(generate_scored_string(L)["total_points"])
-print("LENGTH,MEAN,MEDIAN,25TH PERCENTILE,50TH PERCENTILE,75TH PERCENTILE,90TH PERCENTILE,99TH PERCENTILE,99.9TH PERCENTILE,99.99TH PERCENTILE")
-for L in range(2, 33):
-    score   = []
-    for _ in range(N):
-        score.append(generate_scored_string(L)["total_points"])
-        # LENGTH, MEAN, MEDIAN, 25TH PERCENTILE, 50TH PERCENTILE, 75TH PERCENTILE, 90TH PERCENTILE, 99TH PERCENTILE
-    print(f"{L},{statistics.mean(score)},{statistics.median(score)},{np.percentile(score, 25)},{np.percentile(score, 50)},{np.percentile(score, 75)},{np.percentile(score, 90)},{np.percentile(score, 99)},{np.percentile(score, 99.9)},{np.percentile(score, 99.99)}")
-# t = 0
+# N = 200000
+# #L = 12
+# scores = []
+# # for _ in range(N):
+# #     scores.append(generate_scored_string(L)["total_points"])
+# print("LENGTH,MEAN,MEDIAN,25TH PERCENTILE,50TH PERCENTILE,75TH PERCENTILE,90TH PERCENTILE,99TH PERCENTILE,99.9TH PERCENTILE,99.99TH PERCENTILE")
+# for L in range(2, 33):
+#     score   = []
+#     for _ in range(N):
+#         score.append(generate_scored_string(L)["total_points"])
+#         # LENGTH, MEAN, MEDIAN, 25TH PERCENTILE, 50TH PERCENTILE, 75TH PERCENTILE, 90TH PERCENTILE, 99TH PERCENTILE
+#     print(f"{L},{statistics.mean(score)},{statistics.median(score)},{np.percentile(score, 25)},{np.percentile(score, 50)},{np.percentile(score, 75)},{np.percentile(score, 90)},{np.percentile(score, 99)},{np.percentile(score, 99.9)},{np.percentile(score, 99.99)}")
+# # t = 0
 # while True:
 #     s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=30))
 #     be = fi.maximal_bookend(s)

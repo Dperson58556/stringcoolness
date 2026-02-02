@@ -77,6 +77,12 @@
         margin-bottom: 12px;
       }
 
+      .card-container {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
       .card-title {
         font-size: 38px;
         font-weight: bolder;
@@ -289,20 +295,28 @@
       <button onclick="generate_test_string()">Generate</button>
     </div>
 
+    <!-- <button onclick="generateDebugTable()">Debug: Generate Table</button> -->
+
     <div id="results"></div>
 
+    <div id="debug-area"></div>
+
     <script>
+      // async function generateDebugTable() {
+         
+      // }
+      
       async function generate() {
         const length = document.getElementById("length").value;
         const res = await fetch(`/generate?length=${length}`);
         const data = await res.json();
 
-        const obj = Array.isArray(data) ? data[0] : data;
+        const obj = data;
 
         const results = document.getElementById("results");
         results.innerHTML = "";
 
-        results.appendChild(createCard(obj));
+        results.appendChild(createCards(obj));
       }
 
       async function generate_test_string() {
@@ -315,7 +329,20 @@
         const results = document.getElementById("results");
         results.innerHTML = "";
 
-        results.appendChild(createCard(obj));
+        results.appendChild(createCards(obj));
+      }
+
+      function createCards(data) {
+        const dataArray = Array.isArray(data) ? data : [data];
+        console.log(data);
+
+        const container = document.createElement("div");
+        container.className = "card-container";
+
+        dataArray.forEach(item => {
+          container.appendChild(createCard(item));
+        });
+        return container;
       }
 
       function createCard(data) {
@@ -373,6 +400,7 @@
         } else {
           stats.appendChild(makeStat("BOOKEND", 0));
         }
+        stats.appendChild(makeStat("BIGRAM SCORE", data.bigram_bonus));
 
         ////////////////////////// Repeated Characters//////////////////////////
         const repeatsCharSection = document.createElement("div");

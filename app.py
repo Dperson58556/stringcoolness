@@ -7,7 +7,7 @@ english_trie = fi.load_dictionary_trie("dict.txt")
 ###########################################
 ############### FINAL SCORE ###############
 ###########################################
-def generate_scored_string(length, word = None):
+def generate_scored_string(length, word = None, debug = False):
     ##### GENERATE RANDOM STRING #####
     random_string = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=length))
     if word:
@@ -52,43 +52,47 @@ def generate_scored_string(length, word = None):
     words_within_bonus = 0
     repeated_chunks_bonus = 0
     char_blocks_bonus = 0
+    bigram_bonus = 0 ##################### NOT IMPLEMENTED YET #####################
     total_points = 0
 
     # BONUSES
-    letter_points           = sum((fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)) for letter in random_string)
+    letter_points           = sum((2 * fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)) for letter in random_string)
     length_bonus            = 1 + ((length**1.25)/20)
     entropy_bonus           = 1 + 2 * abs(entropy_rarity)
     vowel_ratio_bonus       = 1 + 2 * abs(vowel_ratio_rarity)
-    bookend_bonus           = bookend[0]*4 if bookend is not None else 1
+    bookend_bonus           = bookend[0]*3.5 if bookend is not None else 1
+    bigram_bonus            = sum(fi.ENGLISH.get(random_string[i:i+2], 0) for i in range(len(random_string)-1))##################### NOT IMPLEMENTED YET #####################
     
     for palindrome in palindromes:
         palindrome_letter_bonus = 0
         for char in palindrome[2]:
             palindrome_letter_bonus += fi.letter_values[char]
-        palindrome_bonus += ( (palindrome_letter_bonus) * 3 * (len(palindrome[2])**2))
+        palindrome_bonus += ( (palindrome_letter_bonus) * 4 * (len(palindrome[2])**3))
     
     for word in words_within:
         for char in word[2]:
-            words_within_bonus += fi.letter_values[char]*(len(word[2])**4.5)
+            words_within_bonus += fi.letter_values[char]*(len(word[2])**5)
 
     for block in char_blocks:
         for char in block[2]:
-            char_blocks_bonus += (fi.letter_values[char]*2*(len(block[2])**3))
+            char_blocks_bonus += ((2 * fi.letter_values[char])**1.4) * ((len(block[2]))**4)
 
     for chunk in repeated_chunks:
         for char in chunk:
-            repeated_chunks_bonus += fi.letter_values[char]*2*(repeated_chunks[chunk]**2)
+            repeated_chunks_bonus += ((2 * fi.letter_values[char])**1.2)*3*(repeated_chunks[chunk]**5)
 
     remaining_bonuses = (palindrome_bonus +
                         words_within_bonus +  
                         char_blocks_bonus +
                         repeated_chunks_bonus)*length_bonus
     
-    total_points = (letter_points * 
+    sub_total_points = (letter_points * 
                     length_bonus * 
                     entropy_bonus * 
                     vowel_ratio_bonus * 
                     bookend_bonus) + remaining_bonuses
+    
+    total_points = sub_total_points ** (1.2)
 
     card_rarity = fi.get_rarity_from_score(total_points, length)
 
@@ -114,6 +118,7 @@ def generate_scored_string(length, word = None):
         "words_within_bonus": round(words_within_bonus, 5),
         "char_blocks_bonus": round(char_blocks_bonus, 5),
         "repeated_chunks_bonus": round(repeated_chunks_bonus, 5),
+        "bigram_bonus": round(bigram_bonus, 5),
         "total_points": round(total_points),
         "card_rarity": card_rarity
     }
@@ -137,9 +142,9 @@ def generate_test_string():
 @app.route("/generate")
 def generate():
     length = int(request.args.get("length", 8))
-    rolls = int(request.args.get("rolls", 1))
+    rolls = int(request.args.get("rolls", 2500))
 
-    results = [generate_scored_string(length) for _ in range(rolls)]
+    results = [generate_scored_string(fi.random.randint(4,18)) for _ in range(rolls)]
 
     return jsonify(results)
 
