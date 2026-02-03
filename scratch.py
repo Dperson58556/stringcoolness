@@ -8,6 +8,12 @@ import matplotlib.pyplot as plt
 import statistics
 import functions_imports as fi
 import numpy as np
+from multiprocessing import Pool
+import signal
+from itertools import product
+
+def init_worker():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 # Load Trie Once
 english_trie = fi.load_dictionary_trie("dict.txt")
@@ -126,32 +132,32 @@ def generate_scored_string(length, word = None, debug = False):
         # "words_within_bonus": round(words_within_bonus, 5),
         # "char_blocks_bonus": round(char_blocks_bonus, 5),
         # "repeated_chunks_bonus": round(repeated_chunks_bonus, 5),
-        "bigram_bonus": round(bigram_bonus, 5),
+        # "bigram_bonus": round(bigram_bonus, 5),
         "total_points": round(total_points)#,
         # "card_rarity": card_rarity
     }
 
 
-def create_histogram(data, data2=None, bins=10, title="Histogram", xlabel="Value", ylabel="Frequency", pcolor ='skyblue'):
-    # Create histogram
-    plt.figure(figsize=(18, 6))
-    plt.hist(data, bins=bins, color=pcolor, edgecolor='black', density=False)
-    #plt.hist2d(data, data2, bins=bins, cmap='Blues')
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
-    plt.show()
+# def create_histogram(data, data2=None, bins=10, title="Histogram", xlabel="Value", ylabel="Frequency", pcolor ='skyblue'):
+#     # Create histogram
+#     plt.figure(figsize=(18, 6))
+#     plt.hist(data, bins=bins, color=pcolor, edgecolor='black', density=False)
+#     #plt.hist2d(data, data2, bins=bins, cmap='Blues')
+#     plt.title(title)
+#     plt.xlabel(xlabel)
+#     plt.ylabel(ylabel)
+#     plt.grid(axis='y', linestyle='--', alpha=0.7)
+#     plt.show()
 
-test_strings = [
-    "abcdefghijklmnopqrstuvwxyz",
-    "aaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "zzzzzzzzzzzzzzzzzzzzzzzzzz",
-    "zyxwvutsrqponmlkjihgfedcab",
-    "ababababababababababababab",
-    "abcabcabcabcabcabcabcabcab",
-    "aaaaaaaaaaaaabbbbbbbbbbbbb",
-    "pqowkjldsanfbhajsdlknajfnh"]
+# test_strings = [
+#     "abcdefghijklmnopqrstuvwxyz",
+#     "aaaaaaaaaaaaaaaaaaaaaaaaaa",
+#     "zzzzzzzzzzzzzzzzzzzzzzzzzz",
+#     "zyxwvutsrqponmlkjihgfedcab",
+#     "ababababababababababababab",
+#     "abcabcabcabcabcabcabcabcab",
+#     "aaaaaaaaaaaaabbbbbbbbbbbbb",
+#     "pqowkjldsanfbhajsdlknajfnh"]
 
 # while True:
 #     rs = ''.join(random.choices(string.ascii_lowercase, k=length))
@@ -223,18 +229,18 @@ def lengths_dist_heatmap():
     plt.colorbar(label="count")
     plt.show()
 
-N = 10000
-L = 12
-scores = []
-for i in range(N):
-    s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=L))
-    be = generate_scored_string(L, s)
-    if be["bigram_bonus"] > 150:
-        scores.append([i, be["random_string"], be["total_points"], be["bigram_bonus"]])
+# N = 10000
+# L = 12
+# scores = []
+# for i in range(N):
+#     s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=L))
+#     be = generate_scored_string(L, s)
+#     if be["bigram_bonus"] > 150:
+#         scores.append([i, be["random_string"], be["total_points"], be["bigram_bonus"]])
 
-scores.sort(key=lambda x: x[3], reverse=True)
-for i, elem in enumerate(scores[:25]):
-    print(f"{i:2}: {elem[0]:8}: {elem[1]} => {elem[2]}  (bigram: {elem[3]})")
+# scores.sort(key=lambda x: x[3], reverse=True)
+# for i, elem in enumerate(scores[:25]):
+#     print(f"{i:2}: {elem[0]:8}: {elem[1]} => {elem[2]}  (bigram: {elem[3]})")
 
 #lengths_dist_heatmap()
 # N = 10000000
@@ -248,37 +254,74 @@ for i, elem in enumerate(scores[:25]):
 #     rs_ent = string_entropy(rs)
 #     print(f"{rs}: z={rs_zscore:8.4f}, e={rs_ent:7.4f}, compsite={rs_zscore / rs_ent:10.4f}")
 
+############## SCORE STATISTICS GENERATION ##############
 
-# N = 200000
-# #L = 12
 # scores = []
-# # for _ in range(N):
-# #     scores.append(generate_scored_string(L)["total_points"])
-# print("LENGTH,MEAN,MEDIAN,25TH PERCENTILE,50TH PERCENTILE,75TH PERCENTILE,90TH PERCENTILE,99TH PERCENTILE,99.9TH PERCENTILE,99.99TH PERCENTILE")
-# for L in range(2, 33):
+# print("LENGTH,MEAN,25TH PERCENTILE,50TH PERCENTILE,75TH PERCENTILE,90TH PERCENTILE,99TH PERCENTILE,99.9TH PERCENTILE,99.99TH PERCENTILE, 99.999TH PERCENTILE")
+# for L in range(3, 33):
 #     score   = []
-#     for _ in range(N):
-#         score.append(generate_scored_string(L)["total_points"])
-#         # LENGTH, MEAN, MEDIAN, 25TH PERCENTILE, 50TH PERCENTILE, 75TH PERCENTILE, 90TH PERCENTILE, 99TH PERCENTILE
-#     print(f"{L},{statistics.mean(score)},{statistics.median(score)},{np.percentile(score, 25)},{np.percentile(score, 50)},{np.percentile(score, 75)},{np.percentile(score, 90)},{np.percentile(score, 99)},{np.percentile(score, 99.9)},{np.percentile(score, 99.99)}")
-# # t = 0
-# while True:
-#     s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=30))
-#     be = fi.maximal_bookend(s)
-#     if be is not None and be[0]>=5:
-        
-#     t += 1
+#     mean_numerator = 0
 
-# t = 0
-# N= 1000
-# million_trials_bookends = []
-# for i in range(N):
-#     s = ''.join(fi.random.choices(fi.string.ascii_lowercase, k=16))
-#     be = fi.palindromic_blocks_all(s)
-#     if be is not None:
-#         million_trials_bookends.append(len(be[2]))
-#     else:
-#         million_trials_bookends.append(0)
+#     score = np.fromiter(
+#         (generate_scored_string(L)["total_points"] for _ in range(N)),
+#         dtype=np.int32,
+#         count=N
+#     )
+#     mean_numerator = np.sum(score)
+#     print(f"{L},{mean_numerator / N},{np.percentile(score, [25, 50, 75, 90, 99, 99.9, 99.99, 99.999])}")
 
+def run_length(L, N=10_000_000):
+    print(f"Begin length {L}")
+    scores = np.fromiter(
+        (generate_scored_string(L)["total_points"] for _ in range(N)),
+        dtype=np.int32,
+        count=N
+    )
+    p = np.percentile(scores, [25, 50, 75, 90, 99, 99.9, 99.99, 99.999])
+    print(f"Completed length {L}")
+    return L, scores.mean(), p
+
+if __name__ == "__main__":
+
+    alphabet = string.ascii_lowercase
+    pcts = []
+    for L in range(2, 6):
+        N = 26 ** L
+        scores = np.empty(N, dtype=np.int32)
+        pct = []
+
+        i = 0
+        for tup in product(alphabet, repeat=L):
+            scores[i] = generate_scored_string(L,''.join(tup))["total_points"]
+            if i % 100000 == 0:
+                print(f"Length {L}: Processed {i}/{N} ({(i/N)*100:.2f}%)")
+            i += 1
+
+        pct = np.percentile(
+            scores,
+            [25, 50, 75, 90, 99, 99.9, 99.99, 99.999]
+        )
+
+        pcts.append(pct)
+
+    with open("score_rarity_percentiles_multithreaded.json", "a") as f:
+        f.write("{\n")
+        f.write(f'"row1": [MEAN,25PCTILE,50PCTILE,75PCTILE,90PCTILE,99PCTILE,99.9PCTILE,99.99PCTILE,99.999PCTILE],\n')
+        for i, pct in enumerate(pcts):
+            mean = scores[i].mean()
+            f.write(f'"row{i + 2}": [{mean},{pct[0]},{pct[1]},{pct[2]},{pct[3]},{pct[4]},{pct[5]},{pct[6]},{pct[7]}],\n')
+
+    with Pool() as p:
+        results = p.map(run_length, range(6, 33))
+
+    with open("score_rarity_percentiles_multithreaded.json", "a") as f:
+        for res in results:
+            L = res[0]
+            mean = res[1]
+            p = res[2]
+            f.write(f'"row{L}": [{mean},{p[0]},{p[1]},{p[2]},{p[3]},{p[4]},{p[5]},{p[6]},{p[7]}],\n')
+        f.write("}\n")
+
+############## CREATE HISTOGRAM OF SCORES ##############
 
 #create_histogram(scores, bins=500, title="Score Distribution", xlabel="Score", ylabel="Frequency")
