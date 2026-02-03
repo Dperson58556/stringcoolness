@@ -92,7 +92,7 @@ def generate_scored_string(length, word = None, debug = False):
                     vowel_ratio_bonus * 
                     bookend_bonus) + remaining_bonuses
     
-    total_points = sub_total_points ** (1.2)
+    total_points = (sub_total_points ** (1.2)) / fi.RARITY_SCALAR
 
     card_rarity = fi.get_rarity_from_score(total_points, length)
 

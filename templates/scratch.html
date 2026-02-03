@@ -17,57 +17,57 @@
       }
 
       .card {
-        width: 380px;
+        width: 390px;
         background: #1b1b1b;
         border-radius: 8px;
         padding: 16px;
         margin-top: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0px 20px rgba(0,0,0,0.5);
       }
 
       .cardunc {
-        width: 380px;
+        width: 390px;
         background: #048100;
         border-radius: 8px;
         padding: 16px;
         margin-top: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0px 20px rgba(0,255,0,0.5);
       }
 
       .cardrar {
-        width: 370px;
+        width: 390px;
         background: #0c45d5;
         border-radius: 8px;
         padding: 16px;
         margin-top: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0px 30px rgba(0,128,255,.5);
       }
 
       .cardepc {
-        width: 370px;
-        background: #5300ab;
+        width: 390px;
+        background: #862ce6;
         border-radius: 8px;
         padding: 16px;
         margin-top: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0px 40px rgba(128,0,255,1);
       }
 
       .cardleg {
-        width: 370px;
-        background: #bc6c04;
+        width: 390px;
+        background: #d69215;
         border-radius: 8px;
         padding: 16px;
         margin-top: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0px 50px rgba(255,200,0,1);
       }
 
       .cardmyth {
-        width: 370px;
-        background: #ff0000;
+        width: 390px;
+        background: #ff2727;
         border-radius: 8px;
         padding: 16px;
         margin-top: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0px 60px rgba(255,0,0,1);
       }
 
       .card-header {
@@ -407,7 +407,7 @@
 
         const score = document.createElement("div");
         score.className = "card-score";
-        score.textContent = data.total_points;
+        score.textContent = data.total_points.toLocaleString('en-US');
 
         header.appendChild(title);
         header.appendChild(score);

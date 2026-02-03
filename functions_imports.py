@@ -9,6 +9,7 @@ from english_bigrams import ENGLISH
 ###################################### CONSTANTS ######################################
 LEN_LIMIT = 32
 ROLL_LIMIT = 5000
+RARITY_SCALAR = 1
 
 ############################ STRUCTURE-RELATED PARAMETERS ############################
 
@@ -313,16 +314,16 @@ with open("score_rarity_percentiles.json", "r") as f:
     score_rarity_percentiles = json.load(f)
 
 def get_rarity_from_score(total_points, length):
-    
-    if total_points < float(score_rarity_percentiles[f"row{length}"][4]): # < 90th Percentile
+
+    if total_points < float(score_rarity_percentiles[f"row{length}"][4]) / RARITY_SCALAR: # < 90th Percentile
         return "Common"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][5]): # < 99th Percentile
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][5]) / RARITY_SCALAR: # < 99th Percentile
         return "Uncommon"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][6]): # < 99.9th Percentile
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][6]) / RARITY_SCALAR: # < 99.9th Percentile
         return "Rare"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][7]): # < 99.99th Percentile
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][7]) / RARITY_SCALAR: # < 99.99th Percentile
         return "Epic"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][8]): # < 99.999th Percentile
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][8]) / RARITY_SCALAR: # < 99.999th Percentile
         return "Legendary"
     else:
         return "Mythical" # 1 in 100,000 !!!
