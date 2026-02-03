@@ -285,7 +285,7 @@ if __name__ == "__main__":
 
     alphabet = string.ascii_lowercase
     pcts = []
-    for L in range(2, 6):
+    for L in range(2, 3):
         N = 26 ** L
         scores = np.empty(N, dtype=np.int32)
         pct = []
@@ -311,16 +311,16 @@ if __name__ == "__main__":
             mean = scores[i].mean()
             f.write(f'"row{i + 2}": [{mean},{pct[0]},{pct[1]},{pct[2]},{pct[3]},{pct[4]},{pct[5]},{pct[6]},{pct[7]}],\n')
 
-    with Pool() as p:
-        results = p.map(run_length, range(6, 33))
+    # with Pool() as p:
+    #     results = p.map(run_length, range(6, 33))
 
-    with open("score_rarity_percentiles_multithreaded.json", "a") as f:
-        for res in results:
-            L = res[0]
-            mean = res[1]
-            p = res[2]
-            f.write(f'"row{L}": [{mean},{p[0]},{p[1]},{p[2]},{p[3]},{p[4]},{p[5]},{p[6]},{p[7]}],\n')
-        f.write("}\n")
+    # with open("score_rarity_percentiles_multithreaded.json", "a") as f:
+    #     for res in results:
+    #         L = res[0]
+    #         mean = res[1]
+    #         p = res[2]
+    #         f.write(f'"row{L}": [{mean},{p[0]},{p[1]},{p[2]},{p[3]},{p[4]},{p[5]},{p[6]},{p[7]}],\n')
+    #     f.write("}\n")
 
 ############## CREATE HISTOGRAM OF SCORES ##############
 

@@ -312,13 +312,25 @@ with open("score_rarity_percentiles.json", "r") as f:
 
 def get_rarity_from_score(total_points, length):
     
-    if total_points < float(score_rarity_percentiles[f"row{length}"][6]): # < 75th Percentile
+    if total_points < float(score_rarity_percentiles[f"row{length}"][4]): # < 90th Percentile
         return "Common"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][7]): # < 90th Percentile
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][5]): # < 99th Percentile
         return "Uncommon"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][8]): # < 99th Percentile
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][6]): # < 99.9th Percentile
         return "Rare"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][9]): # < 99.9th Percentile
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][7]): # < 99.99th Percentile
         return "Epic"
-    else:
+    elif total_points < float(score_rarity_percentiles[f"row{length}"][8]): # < 99.999th Percentile
         return "Legendary"
+    else:
+        return "Mythical" # 1 in 100,000 !!!
+    
+    #   "row1": [0: "MEAN",
+    #            1: "25PCTILE",
+    #            2: "50PCTILE",
+    #            3: "75PCTILE",
+    #            4: "90PCTILE",
+    #            5: "99PCTILE",
+    #            6: "99.9PCTILE",
+    #            7: "99.99PCTILE",
+    #            8: "99.999PCTILE"],

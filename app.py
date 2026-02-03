@@ -142,9 +142,9 @@ def generate_test_string():
 @app.route("/generate")
 def generate():
     length = int(request.args.get("length", 8))
-    rolls = int(request.args.get("rolls", 2500))
+    rolls = int(request.args.get("rolls", 27))
 
-    results = [generate_scored_string(fi.random.randint(4,18)) for _ in range(rolls)]
+    results = [generate_scored_string(length) for _ in range(rolls)]
 
     return jsonify(results)
 
