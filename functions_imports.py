@@ -6,8 +6,10 @@ import json
 import matplotlib.pyplot as plt
 from english_bigrams import ENGLISH
 
-# The above two imports are failing because the correct syntax should be:
-# from random_string_detector.bigrams.english import ENGLISH
+###################################### CONSTANTS ######################################
+LEN_LIMIT = 32
+ROLL_LIMIT = 5000
+
 ############################ STRUCTURE-RELATED PARAMETERS ############################
 
 ##### PERCENT UNIQUE #####

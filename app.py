@@ -132,7 +132,7 @@ def index():
 
 @app.route("/generate_test_string")
 def generate_test_string():
-    test_string = str(request.args.get("test_string"))
+    test_string = str(request.args.get("test_string"))[:fi.LEN_LIMIT]
     rolls = int(request.args.get("rolls", 1))
 
     results = [generate_scored_string(len(test_string), test_string) for _ in range(rolls)]
@@ -141,8 +141,8 @@ def generate_test_string():
 
 @app.route("/generate")
 def generate():
-    length = int(request.args.get("length", 8))
-    rolls = int(request.args.get("rolls", 27))
+    length = min(fi.LEN_LIMIT, int(request.args.get("length", 8)))
+    rolls = min(fi.ROLL_LIMIT, int(request.args.get("roll_count", 1)))
 
     results = [generate_scored_string(length) for _ in range(rolls)]
 

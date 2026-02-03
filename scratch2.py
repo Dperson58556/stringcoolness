@@ -1,2 +1,5 @@
-for i in range(1,3):
-    print(i)
+test_string = "abcdefghijk"
+test_string2 = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
+
+print(test_string[:32])
+print(len(test_string2[:32]))
