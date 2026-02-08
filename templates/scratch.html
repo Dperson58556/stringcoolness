@@ -106,32 +106,6 @@
         font-weight: bold;
       }
 
-      .stats {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-bottom: 12px;
-      }
-
-      .stat {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .stat-name {
-        color: #ffffff;
-      }
-
-      .stat-rarity {
-        justify-content: flex-start;
-        gap: 12px;
-      }
-
-      .stat-value {
-        font-weight: bold;
-      }
-
       .subsection {
         margin-top: 10px;
       }
@@ -159,7 +133,6 @@
         font-size: 12px;
         color: #3a3a3a
       }
-
       .pill1 {
         display: inline-flex;
         align-items: center;
@@ -175,7 +148,6 @@
         font-size: 12px;
         color: #bbbbbb
       }
-
       .pill2 {
         display: inline-flex;
         align-items: center;
@@ -191,7 +163,6 @@
         font-size: 12px;
         color: #333
       }
-
       .pill3 {
         display: inline-flex;
         align-items: center;
@@ -206,7 +177,6 @@
         margin: 2px;
         font-size: 12px;
       }
-
       .pill4 {
         display: inline-flex;
         align-items: center;
@@ -221,7 +191,6 @@
         margin: 2px;
         font-size: 12px;
       }
-
       .pill5 {
         display: inline-flex;
         align-items: center;
@@ -236,7 +205,6 @@
         margin: 2px;
         font-size: 12px;
       }
-
       .pill6 {
         display: inline-flex;
         align-items: center;
@@ -252,7 +220,6 @@
         font-size: 12px;
         color: #222222;
       }
-
       .pill7 {
         display: inline-flex;
         align-items: center;
@@ -267,7 +234,6 @@
         margin: 2px;
         font-size: 12px;
       }
-
       .pill8 {
         display: inline-flex;
         align-items: center;
@@ -282,22 +248,6 @@
         margin: 2px;
         font-size: 12px;
       }
-
-      .pill9 {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2px 6px;
-        min-width: 58px;
-        width: auto;
-        white-space: nowrap;
-        border-radius: 6px;
-        border: 1px solid #000000;
-        background: rgb(66, 31, 0);
-        margin: 2px;
-        font-size: 12px;
-      }
-
       .pill9 {
         display: inline-flex;
         align-items: center;
@@ -312,6 +262,45 @@
         margin: 2px;
         font-size: 12px;
         color: #222222
+      }
+  
+      .stats {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+
+      .stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .stat-name {
+        color: #ffffff;
+      }
+
+      .stat-value {
+        font-weight: bold;
+      }
+
+      .stat-rarity {
+        justify-content: flex-start;
+      }
+
+      .stat-rarity .rarity-meter {
+        margin-left: auto;
+        width: calc(100% - 250px);
+        max-width: 180px;
+      }
+
+      .rarity-meter {
+        width: min(160px, calc(100% - 250px));
+        height: 10px;
+        background: #222;
+        border-radius: 2px;
+        overflow: hidden;
       }
 
       .rarity-bar {
@@ -358,12 +347,16 @@
     <!-- <button onclick="generateDebugTable()">Debug: Generate Table</button> -->
 
     <div id="results"></div>
-
-    <div class="rarity-meter">
-      <div class="rarity-fill" id="rarity-bar">
-          ss
+    
+    <div class="card">
+      <div class="stat stat-rarity">
+        <span class="stat-name">Rarity</span>
+        <div class="rarity-meter">
+          <div class="rarity-fill" style="width: 72%"></div>
+        </div>
       </div>
     </div>
+
 
     <div id="debug-area"></div>
 
@@ -391,7 +384,7 @@
         const res = await fetch(`/generate_test_string?test_string=${test_string}`);
         const data = await res.json();
         
-        const obj = Array.isArray(data) ? data[0] : data;
+        const obj = data;
 
         const results = document.getElementById("results");
         results.innerHTML = "";
@@ -462,10 +455,7 @@
 
         const val = document.createElement("div");
         val.className = "rarity-bar";
-        if (name == "% UNIQUE") {
-          val.textContent = `${value}%`;
-        } else 
-        { val.textContent = value; };
+        val.textContent = value;
         val.style.width = zToPercent(value) + "%";
 
         row.appendChild(label);

@@ -132,10 +132,12 @@ def index():
 
 @app.route("/generate_test_string")
 def generate_test_string():
-    test_string = str(request.args.get("test_string"))[:fi.LEN_LIMIT]
-    rolls = int(request.args.get("rolls", 1))
+    test_strings_string = str(request.args.get("test_string"))#[:fi.LEN_LIMIT]
 
-    results = [generate_scored_string(len(test_string), test_string) for _ in range(rolls)]
+    test_strings_list = [item[:fi.LEN_LIMIT] for item in test_strings_string.split(",") if item]
+    #rolls = int(request.args.get("roll_count", 1))
+
+    results = [generate_scored_string(len(test_string), test_string) for test_string in test_strings_list]
 
     return jsonify(results)
 
@@ -143,9 +145,14 @@ def generate_test_string():
 def generate():
     length = min(fi.LEN_LIMIT, int(request.args.get("length", 8)))
     rolls = min(fi.ROLL_LIMIT, int(request.args.get("roll_count", 1)))
+    results = []
 
-    results = [generate_scored_string(length) for _ in range(rolls)]
+    while len(results) < rolls:
+        res = generate_scored_string(length)
+        if res["card_rarity"] in {"Epic", "Legendary", "Mythical"}:
+            results.append(res)
 
+    #results = [generate_scored_string(length) for _ in range(rolls)]
     return jsonify(results)
 
 if __name__ == "__main__":

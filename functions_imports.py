@@ -229,12 +229,22 @@ def entropy_rarity_z_score(s):
 letter_values = {
     'a': 1,  'b': 3,  'c': 3,  'd': 2,
     'e': 1,  'f': 4,  'g': 2,  'h': 4,
-    'i': 1,  'j': 8,  'k': 5,  'l': 1,
+    'i': 1,  'j': 6,  'k': 5,  'l': 1,
     'm': 3,  'n': 1,  'o': 1,  'p': 3,
-    'q': 10, 'r': 1,  's': 1,  't': 1,
-    'u': 1,  'v': 4,  'w': 4,  'x': 8,
-    'y': 4,  'z': 10
+    'q': 8,  'r': 1,  's': 1,  't': 1,
+    'u': 1,  'v': 4,  'w': 4,  'x': 6,
+    'y': 4,  'z': 8
 }
+
+# letter_values = {
+#     'a': 1,  'b': 3,  'c': 3,  'd': 2,
+#     'e': 1,  'f': 4,  'g': 2,  'h': 4,
+#     'i': 1,  'j': 8,  'k': 5,  'l': 1,
+#     'm': 3,  'n': 1,  'o': 1,  'p': 3,
+#     'q': 10, 'r': 1,  's': 1,  't': 1,
+#     'u': 1,  'v': 4,  'w': 4,  'x': 8,
+#     'y': 4,  'z': 10
+# }
 
 ##### CREATE TRIE #####
 class TrieNode:
@@ -313,6 +323,10 @@ score_rarity_percentiles = {}
 with open("score_rarity_percentiles.json", "r") as f:
     score_rarity_percentiles = json.load(f)
 
+score_component_percentiles = {}
+with open("score_component_percentiles.json", "r") as f:
+    score_component_percentiles = json.load(f)
+
 def get_rarity_from_score(total_points, length):
 
     if total_points < float(score_rarity_percentiles[f"row{length}"][4]) / RARITY_SCALAR: # < 90th Percentile
@@ -327,6 +341,20 @@ def get_rarity_from_score(total_points, length):
         return "Legendary"
     else:
         return "Mythical" # 1 in 100,000 !!!
+
+def get_component_rarity(component, value, length):
+    if value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["90.0"]):
+        return "Common"
+    elif value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["99.0"]):
+        return "Uncommon"
+    elif value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["99.9"]):
+        return "Rare"
+    elif value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["99.99"]):
+        return "Epic"
+    elif value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["99.999"]):
+        return "Legendary"
+    else:
+        return "Mythical"
     
     #   "row1": [0: "MEAN",
     #            1: "25PCTILE",
