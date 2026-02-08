@@ -1,5 +1,4 @@
-test_string = "abcdefghijk"
-test_string2 = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
+listme = [1, 2, 3, 4, 5]
 
-print(test_string[:32])
-print(len(test_string2[:32]))
+listme.insert(2, 99)
+print(listme)

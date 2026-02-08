@@ -116,10 +116,16 @@
       .stat {
         display: flex;
         justify-content: space-between;
+        align-items: center;
       }
 
       .stat-name {
         color: #ffffff;
+      }
+
+      .stat-rarity {
+        justify-content: flex-start;
+        gap: 12px;
       }
 
       .stat-value {
@@ -307,6 +313,21 @@
         font-size: 12px;
         color: #222222
       }
+
+      .rarity-bar {
+        width: 120px;
+        height: 12px;
+        background: #222;
+        border-radius: 0px;
+        overflow: hidden;
+      }
+
+      .rarity-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff0000, #ffff00,#00ff00);
+        transition: width 0.1s ease;
+      }
+
     </style>
   </head>
 
@@ -337,6 +358,12 @@
     <!-- <button onclick="generateDebugTable()">Debug: Generate Table</button> -->
 
     <div id="results"></div>
+
+    <div class="rarity-meter">
+      <div class="rarity-fill" id="rarity-bar">
+          ss
+      </div>
+    </div>
 
     <div id="debug-area"></div>
 
@@ -383,6 +410,67 @@
           container.appendChild(createCard(item));
         });
         return container;
+      }
+
+      function setRarity(value, max = 10) {
+        const percent = Math.min(value / max, 1) * 100;
+        const bar = document.getElementById("rarity-bar");
+
+        bar.style.width = zToPercent(vowelZScore) + "%";
+
+        if (percent < 30) bar.style.background = "#888";
+        else if (percent < 60) bar.style.background = "#4caf50";
+        else if (percent < 85) bar.style.background = "#ff9800";
+        else bar.style.background = "#e91e63";
+      }
+
+      function zToPercent(z, cap = 4) {
+        return Math.min(Math.abs(z) / cap, 1) * 100;
+      }
+
+      function makeStat(name, value) {
+        if (name == "% UNIQUE"){
+          value = value * 100.00
+        };
+
+        const row = document.createElement("div");
+        row.className = "stat";
+
+        const label = document.createElement("div");
+        label.className = "stat-name";
+        label.textContent = name;
+
+        const val = document.createElement("div");
+        val.className = "stat-value";
+        if (name == "% UNIQUE") {
+          val.textContent = `${value}%`;
+        } else 
+        { val.textContent = value; };
+
+        row.appendChild(label);
+        row.appendChild(val);
+        return row;
+      }
+
+      function makeStatBar(name, value) {
+        const row = document.createElement("div");
+        row.className = "stat";
+
+        const label = document.createElement("div");
+        label.className = "stat-name";
+        label.textContent = name;
+
+        const val = document.createElement("div");
+        val.className = "rarity-bar";
+        if (name == "% UNIQUE") {
+          val.textContent = `${value}%`;
+        } else 
+        { val.textContent = value; };
+        val.style.width = zToPercent(value) + "%";
+
+        row.appendChild(label);
+        row.appendChild(val);
+        return row;
       }
 
       function createCard(data) {
@@ -434,6 +522,7 @@
         stats.appendChild(makeStat("% UNIQUE", data.percent_unique));
         stats.appendChild(makeStat("ENTROPY", data.entropy));
         stats.appendChild(makeStat("ENTROPY RARITY", data.entropy_rarity));
+        stats.appendChild(makeStatBar("ENTROPY RARITY", data.entropy_rarity));
         stats.appendChild(makeStat("VOWEL RATIO RARITY", data.vowel_ratio_rarity));
         if (data.bookend != null){
           stats.appendChild(makeStat("BOOKEND", data.bookend[0]));
@@ -606,32 +695,7 @@
         card.appendChild(palindromesSection);
         card.appendChild(wordsWithinSection);
         
-
         return card;
-      }
-
-      function makeStat(name, value) {
-        if (name == "% UNIQUE"){
-          value = value * 100.00
-        };
-
-        const row = document.createElement("div");
-        row.className = "stat";
-
-        const label = document.createElement("div");
-        label.className = "stat-name";
-        label.textContent = name;
-
-        const val = document.createElement("div");
-        val.className = "stat-value";
-        if (name == "% UNIQUE") {
-          val.textContent = `${value}%`;
-        } else 
-        { val.textContent = value; };
-
-        row.appendChild(label);
-        row.appendChild(val);
-        return row;
       }
     </script>
 
