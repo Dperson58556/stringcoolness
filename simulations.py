@@ -70,79 +70,84 @@ def generate_scored_string(length, word = None, debug = False):
     words_within_bonus = 0
     repeated_chunks_bonus = 0
     char_blocks_bonus = 0
-    #bigram_bonus = 0 ##################### NOT IMPLEMENTED YET #####################
-    #total_points = 0
+    bigram_bonus = 0 ##################### NOT IMPLEMENTED YET #####################
+    total_points = 0
 
     # BONUSES
     letter_points           = sum((2 * fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)) for letter in random_string)
-    # length_bonus            = 1 + ((length**1.25)/20)
-    # entropy_bonus           = 1 + 2 * abs(entropy_rarity)
-    # vowel_ratio_bonus       = 1 + 2 * abs(vowel_ratio_rarity)
-    # bookend_bonus           = bookend[0]*3 if bookend is not None else 1
-    # #bigram_bonus            = sum(fi.ENGLISH.get(random_string[i:i+2], 0) for i in range(len(random_string)-1))##################### NOT IMPLEMENTED YET #####################
-
-    # for palindrome in palindromes:
-    #     palindrome_letter_bonus = 0
-    #     for char in palindrome[2]:
-    #         palindrome_letter_bonus += fi.letter_values[char]
-    #     palindrome_bonus += ( (palindrome_letter_bonus) * 4 * (len(palindrome[2])**3))
+    length_bonus            = 1 + ((length**1.25)/20)
+    entropy_bonus           = 1 + 3.2 * abs(entropy_rarity)
+    vowel_ratio_bonus       = 1 + 3 * abs(vowel_ratio_rarity)
+    bookend_bonus           = bookend[0]*3.5 if bookend is not None else 1
+    bigram_bonus            = 1 + ( sum(fi.ENGLISH.get(random_string[i:i+2], 0) for i in range(len(random_string)-1)) / 350)##################### NOT IMPLEMENTED YET #####################
     
-    # for word in words_within:
-    #     for char in word[2]:
-    #         words_within_bonus += fi.letter_values[char]*(len(word[2])**5)
+    #entropy_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("entropy_rarity", entropy_rarity, length) * 100)
+    #vowel_ratio_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("vowel_ratio_rarity", vowel_ratio_rarity, length) * 100)
 
-    # for block in char_blocks:
-    #     for char in block[2]:
-    #         char_blocks_bonus += ((2 * fi.letter_values[char])**1.4) * ((len(block[2]))**4)
-
-    # for chunk in repeated_chunks:
-    #     for char in chunk:
-    #         repeated_chunks_bonus += ((2 * fi.letter_values[char])**1.2)*3*(repeated_chunks[chunk]**5)
-
-    # basic_bonuses = (letter_points * 
-    #             length_bonus * 
-    #             entropy_bonus * 
-    #             vowel_ratio_bonus * 
-    #             bookend_bonus)
-        
-    # remaining_bonuses = (palindrome_bonus +
-    #                     words_within_bonus +  
-    #                     char_blocks_bonus +
-    #                     repeated_chunks_bonus)*length_bonus
+    for palindrome in palindromes:
+        palindrome_letter_bonus = 0
+        for char in palindrome[2]:
+            palindrome_letter_bonus += fi.letter_values[char]
+        palindrome_bonus += ( (palindrome_letter_bonus) * 4 * (len(palindrome[2])**3))
     
-    # sub_total_points = basic_bonuses + remaining_bonuses
+    for word in words_within:
+        for char in word[2]:
+            words_within_bonus += fi.letter_values[char]*(len(word[2])**5)
+
+    for block in char_blocks:
+        for char in block[2]:
+            char_blocks_bonus += ((2 * fi.letter_values[char])**1.4) * ((len(block[2]))**4)
+
+    for chunk in repeated_chunks:
+        for char in chunk:
+            repeated_chunks_bonus += ((2 * fi.letter_values[char])**1.2)*3*(repeated_chunks[chunk]**5)
+
+    basic_bonuses = (letter_points * 
+                    length_bonus * 
+                    entropy_bonus * 
+                    vowel_ratio_bonus * 
+                    bookend_bonus)
     
-    # total_points = sub_total_points ** (1.2)
+    remaining_bonuses = (palindrome_bonus +
+                        words_within_bonus +  
+                        char_blocks_bonus +
+                        repeated_chunks_bonus)*length_bonus * bigram_bonus
+    
+    sub_total_points = basic_bonuses + remaining_bonuses
+    
+    total_points = (sub_total_points ** (1.2)) / fi.RARITY_SCALAR
 
     #card_rarity = fi.get_rarity_from_score(total_points, length)
 
     return {
-        #"random_string": random_string,
+        # "random_string": random_string,
         # "repeated_1_strs": repeated_1_strs,
         # "repeated_chunks": repeated_chunks,
-        #"bookend": bookend,
-        #"palindromes": palindromes,
-        #"char_blocks": char_blocks,
-        #"char_blocks_dict": char_blocks_dict,
-        #"words_within": words_within,
-        #"percent_unique": round(percent_unique,5),
-        # "vowel_ratio_rarity": abs(vowel_ratio_rarity),
-        #"entropy": round(entropy
-        # "entropy_rarity": abs(entropy_rarity),
-        "letter_points": letter_points#,
-        #"length_bonus": round(length_bonus, 5)#,
-        #"entropy_bonus": round(entropy_bonus, 5),#####
-        #"vowel_ratio_bonus": round(vowel_ratio_bonus, 5),#####
-        # "bookend_bonus": bookend_bonus,
-        # "palindrome_bonus": palindrome_bonus,
-        # "words_within_bonus": words_within_bonus,
-        # "char_blocks_bonus": char_blocks_bonus,
-        # "repeated_chunks_bonus": repeated_chunks_bonus,
-        # "bigram_bonus": bigram_bonus,
-        # "basic_bonuses": basic_bonuses,
-        # "remaining_bonuses": remaining_bonuses,
-        # "total_points": round(total_points)#,
-        #"card_rarity": card_rarity
+        # "bookend": bookend,
+        # "palindromes": palindromes,
+        # "char_blocks": char_blocks,
+        # "char_blocks_dict": char_blocks_dict,
+        # "words_within": words_within,
+        # "percent_unique": round(percent_unique,5),
+        # "vowel_ratio_rarity": round(vowel_ratio_rarity, 5),
+        # "entropy": round(entropy, 5),
+        # "entropy_rarity": round(entropy_rarity, 5),
+        "letter_points": letter_points,
+        #"length_bonus": round(length_bonus, 5),
+        "entropy_bonus": round(entropy_bonus, 5),
+        "vowel_ratio_bonus": round(vowel_ratio_bonus, 5),
+        "bookend_bonus": round(bookend_bonus, 5),
+        "palindrome_bonus": round(palindrome_bonus, 5),
+        "words_within_bonus": round(words_within_bonus, 5),
+        "char_blocks_bonus": round(char_blocks_bonus, 5),
+        "repeated_chunks_bonus": round(repeated_chunks_bonus, 5),
+        "bigram_bonus": round(bigram_bonus, 5),
+        "basic_bonuses": round(basic_bonuses, 5),
+        "remaining_bonuses": round(remaining_bonuses, 5),
+        "total_points": round(total_points)#,
+        #"card_rarity": card_rarity,
+        #"entropy_bar_percent": round(entropy_bar_percent, 5),
+        #"vowel_ratio_bar_percent": round(vowel_ratio_bar_percent, 5)
     }
 
 
@@ -365,12 +370,23 @@ def run_length(L, N=10_000_000):
 # ]
 
 COMPONENTS = [
-    "letter_points"
+    "letter_points",
+    "entropy_bonus",
+    "vowel_ratio_bonus",
+    "bookend_bonus",
+    "palindrome_bonus",
+    "words_within_bonus",
+    "char_blocks_bonus",
+    "repeated_chunks_bonus",
+    "bigram_bonus",
+    "basic_bonuses",
+    "remaining_bonuses",
+    "total_points"
 ]
 
 PERCENTILES = [25, 50, 75, 90, 99, 99.9, 99.99, 99.999]
 
-OUTPUT_FILE = "score_letterpoints_percentiles_total.json"
+OUTPUT_FILE = "score_component_percentiles.json"
 
 
 # ----------------
@@ -429,7 +445,7 @@ def run_exact_distributions_to_5():
     print(f"\nDone. Results written to {OUTPUT_FILE}")
 
 
-N_TOTAL = 1_000_000
+N_TOTAL = 10_000_000
 # Reservoir for mid-quantiles
 MID_PCTS = [25, 50, 75, 90]
 RESERVOIR_SIZE = 50_000
@@ -532,7 +548,7 @@ def mc_worker(args):
                 elif v > h[0]:
                     heapq.heapreplace(h, v)
 
-        if i % 50_000 == 0:
+        if i % 20_000 == 0:
             print(f"L={L}, PID={pid}: {i:,}/{N:,} ({100 * i / N:.2f}%)")
 
     return count, means, reservoirs, heaps

@@ -324,7 +324,7 @@ with open("score_rarity_percentiles.json", "r") as f:
     score_rarity_percentiles = json.load(f)
 
 score_component_percentiles = {}
-with open("score_component_percentiles.json", "r") as f:
+with open("score_component_percentiles_old.json", "r") as f:
     score_component_percentiles = json.load(f)
 
 def get_rarity_from_score(total_points, length):
