@@ -11,6 +11,10 @@ LEN_LIMIT = 32
 ROLL_LIMIT = 5000
 RARITY_SCALAR = 1
 
+scp = {}
+with open("score_component_percentiles.json", "r") as f:
+    scp = json.load(f)
+
 ############################ STRUCTURE-RELATED PARAMETERS ############################
 
 ##### PERCENT UNIQUE #####
@@ -220,7 +224,8 @@ entropy_avg_stds = [entropy_avg_std(x) for x in range(1,33)]
 
 def entropy_rarity_z_score(s):
     e = string_entropy(s)
-    rarity_z_score = (e - entropy_avg(len(s))) / entropy_avg_std(len(s))
+    e_mean = float(scp[f"length_{len(s)}"]["entropy_rarity"]["mean"])
+    rarity_z_score = (e - e_mean / entropy_avg_std(len(s)))
     return e, rarity_z_score
 
 ############################ ENGLISH-RELATED PARAMETERS ############################
@@ -319,52 +324,42 @@ def digram_frequencies():
     return freqs
 
 ##### SCORE RELATED PARAMETERS #####
-score_rarity_percentiles = {}
-with open("score_rarity_percentiles.json", "r") as f:
-    score_rarity_percentiles = json.load(f)
+# score_rarity_percentiles = {}
+# with open("score_rarity_percentiles.json", "r") as f:
+#     score_rarity_percentiles = json.load(f)
 
-score_component_percentiles = {}
-with open("score_component_percentiles_old.json", "r") as f:
-    score_component_percentiles = json.load(f)
 
-def get_rarity_from_score(total_points, length):
+# def get_rarity_from_score(total_points, length):
 
-    if total_points < float(score_rarity_percentiles[f"row{length}"][4]) / RARITY_SCALAR: # < 90th Percentile
-        return "Common"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][5]) / RARITY_SCALAR: # < 99th Percentile
-        return "Uncommon"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][6]) / RARITY_SCALAR: # < 99.9th Percentile
-        return "Rare"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][7]) / RARITY_SCALAR: # < 99.99th Percentile
-        return "Epic"
-    elif total_points < float(score_rarity_percentiles[f"row{length}"][8]) / RARITY_SCALAR: # < 99.999th Percentile
-        return "Legendary"
-    else:
-        return "Mythical" # 1 in 100,000 !!!
+#     if total_points < float(score_rarity_percentiles[f"row{length}"][4]) / RARITY_SCALAR: # < 90th Percentile
+#         return "Common"
+#     elif total_points < float(score_rarity_percentiles[f"row{length}"][5]) / RARITY_SCALAR: # < 99th Percentile
+#         return "Uncommon"
+#     elif total_points < float(score_rarity_percentiles[f"row{length}"][6]) / RARITY_SCALAR: # < 99.9th Percentile
+#         return "Rare"
+#     elif total_points < float(score_rarity_percentiles[f"row{length}"][7]) / RARITY_SCALAR: # < 99.99th Percentile
+#         return "Epic"
+#     elif total_points < float(score_rarity_percentiles[f"row{length}"][8]) / RARITY_SCALAR: # < 99.999th Percentile
+#         return "Legendary"
+#     else:
+#         return "Mythical" # 1 in 100,000 !!!
 
 def get_component_rarity(component, value, length):
-    if value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["90.0"]):
+    if value < float(scp[f"length_{length}"][f"{component}"]["percentiles"]["90"]):
         return "Common"
-    elif value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["99.0"]):
+    elif value < float(scp[f"length_{length}"][f"{component}"]["percentiles"]["99"]):
         return "Uncommon"
-    elif value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["99.9"]):
+    elif value < float(scp[f"length_{length}"][f"{component}"]["percentiles"]["99.9"]):
         return "Rare"
-    elif value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["99.99"]):
+    elif value < float(scp[f"length_{length}"][f"{component}"]["percentiles"]["99.99"]):
         return "Epic"
-    elif value < float(score_component_percentiles[f"length_{length}"][f"{component}"]["99.999"]):
+    elif value < float(scp[f"length_{length}"][f"{component}"]["percentiles"]["99.999"]):
         return "Legendary"
     else:
         return "Mythical"
     
 def get_component_rarity_bar_percent(component, value, length):
-    return abs( value / float(score_component_percentiles[f"length_{length}"][f"{component}"]["percentiles"]["99.999"]))
-
-    #   "row1": [0: "MEAN",
-    #            1: "25PCTILE",
-    #            2: "50PCTILE",
-    #            3: "75PCTILE",
-    #            4: "90PCTILE",
-    #            5: "99PCTILE",
-    #            6: "99.9PCTILE",
-    #            7: "99.99PCTILE",
-    #            8: "99.999PCTILE"],
+    good_max = float(scp[f"length_{length}"][f"{component}"]["percentiles"]["99.999"])
+    if component == "bigram_bonus":
+        good_max -= 1
+    return abs( value / good_max)

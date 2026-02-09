@@ -55,7 +55,7 @@ def generate_scored_string(length, word = None, debug = False):
             char_blocks_dict[elem[2]] = 1
         else:
             char_blocks_dict[elem[2]] += 1
-    #percent_unique = fi.pct_unique(random_string)
+    percent_unique = fi.pct_unique(random_string)
     vowel_ratio_rarity = fi.vowel_ratio_rarity_z_score(random_string)
     entropy, entropy_rarity = fi.entropy_rarity_z_score(random_string)
     bookend = fi.maximal_bookend(random_string)
@@ -81,9 +81,6 @@ def generate_scored_string(length, word = None, debug = False):
     bookend_bonus           = bookend[0]*3.5 if bookend is not None else 1
     bigram_bonus            = 1 + ( sum(fi.ENGLISH.get(random_string[i:i+2], 0) for i in range(len(random_string)-1)) / 350)##################### NOT IMPLEMENTED YET #####################
     
-    #entropy_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("entropy_rarity", entropy_rarity, length) * 100)
-    #vowel_ratio_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("vowel_ratio_rarity", vowel_ratio_rarity, length) * 100)
-
     for palindrome in palindromes:
         palindrome_letter_bonus = 0
         for char in palindrome[2]:
@@ -117,8 +114,23 @@ def generate_scored_string(length, word = None, debug = False):
     
     total_points = (sub_total_points ** (1.2)) / fi.RARITY_SCALAR
 
-    #card_rarity = fi.get_rarity_from_score(total_points, length)
+    # card_rarity = fi.get_component_rarity("total_points", total_points, length)
+    
+    
+    # letter_points_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("letter_points", letter_points, length) * 100)
+    # words_within_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("words_within_bonus", words_within_bonus, length) * 100)
+    # palindrome_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("palindrome_bonus", palindrome_bonus, length) * 100)
+    # char_blocks_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("char_blocks_bonus", char_blocks_bonus, length) * 100)
+    # repeated_chunks_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("repeated_chunks_bonus", repeated_chunks_bonus, length) * 100)
 
+    
+    # entropy_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("entropy_rarity", entropy_rarity, length) * 100)
+    # vowel_ratio_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("vowel_ratio_rarity", vowel_ratio_rarity, length) * 100)
+    # bookend_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("bookend_bonus", 0 if bookend_bonus==1 else bookend_bonus, length) * 100)
+    # bigram_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("bigram_bonus", bigram_bonus - 1, length) * 100)
+    
+    
+    
     return {
         # "random_string": random_string,
         # "repeated_1_strs": repeated_1_strs,
@@ -128,13 +140,13 @@ def generate_scored_string(length, word = None, debug = False):
         # "char_blocks": char_blocks,
         # "char_blocks_dict": char_blocks_dict,
         # "words_within": words_within,
-        # "percent_unique": round(percent_unique,5),
+        "percent_unique": round(percent_unique,5),
         # "vowel_ratio_rarity": round(vowel_ratio_rarity, 5),
         # "entropy": round(entropy, 5),
         # "entropy_rarity": round(entropy_rarity, 5),
         "letter_points": letter_points,
-        #"length_bonus": round(length_bonus, 5),
-        "entropy_bonus": round(entropy_bonus, 5),
+        # "length_bonus": round(length_bonus, 5),
+        # "entropy_bonus": round(entropy_bonus, 5),
         "vowel_ratio_bonus": round(vowel_ratio_bonus, 5),
         "bookend_bonus": round(bookend_bonus, 5),
         "palindrome_bonus": round(palindrome_bonus, 5),
@@ -145,9 +157,16 @@ def generate_scored_string(length, word = None, debug = False):
         "basic_bonuses": round(basic_bonuses, 5),
         "remaining_bonuses": round(remaining_bonuses, 5),
         "total_points": round(total_points)#,
-        #"card_rarity": card_rarity,
-        #"entropy_bar_percent": round(entropy_bar_percent, 5),
-        #"vowel_ratio_bar_percent": round(vowel_ratio_bar_percent, 5)
+    #     "card_rarity": card_rarity,
+    #     "entropy_bar_percent": round(entropy_bar_percent, 5),
+    #     "vowel_ratio_bar_percent": round(vowel_ratio_bar_percent, 5),
+    #     "bookend_bonus_bar_percent": round(bookend_bonus_bar_percent, 5),
+    #     "bigram_bonus_bar_percent": round(bigram_bonus_bar_percent, 5),
+    #     "letter_points_bar_percent": round(letter_points_bar_percent, 5),
+    #     "words_within_bonus_bar_percent": round(words_within_bonus_bar_percent, 5),
+    #     "palindrome_bonus_bar_percent": round(palindrome_bonus_bar_percent, 5),
+    #     "char_blocks_bonus_bar_percent": round(char_blocks_bonus_bar_percent, 5),
+    #     "repeated_chunks_bonus_bar_percent": round(repeated_chunks_bonus_bar_percent, 5)
     }
 
 
@@ -370,8 +389,8 @@ def run_length(L, N=10_000_000):
 # ]
 
 COMPONENTS = [
+    "percent_unique",
     "letter_points",
-    "entropy_bonus",
     "vowel_ratio_bonus",
     "bookend_bonus",
     "palindrome_bonus",
@@ -386,8 +405,7 @@ COMPONENTS = [
 
 PERCENTILES = [25, 50, 75, 90, 99, 99.9, 99.99, 99.999]
 
-OUTPUT_FILE = "score_component_percentiles.json"
-
+OUTPUT_FILE = "score_component_percentiles_with_std_dev.json"
 
 # ----------------
 
@@ -396,7 +414,7 @@ def run_exact_distributions_to_5():
     output = {}
 
     print("Starting exact distribution calculations, L = 2 to 5...")
-    for L in range(2, 6):
+    for L in range(2, 5):
         print(f"\n=== Processing L = {L} ===")
 
         N = 26 ** L
@@ -423,7 +441,8 @@ def run_exact_distributions_to_5():
             values = data[c]
 
             L_stats[name] = {
-                "mean": float(values.mean()),
+                "mean": float(values.mean()), 
+                "std_deviation": float(values.std()),
                 "percentiles": {
                     str(p): float(v)
                     for p, v in zip(
@@ -452,7 +471,7 @@ RESERVOIR_SIZE = 50_000
 
 # Heaps for extreme tail only
 TAIL_PCTS = {
-    99.0:   1e-2,
+    99:   1e-2,
     99.9:   1e-3,
     99.99:  1e-4,
     99.999: 1e-5,
@@ -472,6 +491,18 @@ def merge_means(results):
 
     return merged
 
+def merge_std_devs(results):
+    total = sum(r[0] for r in results)
+    merged = {k: 0.0 for k in COMPONENTS}
+
+    for count, std_deviations, _, _ in results:
+        for k in COMPONENTS:
+            merged[k] += std_deviations[k] * count
+
+    for k in merged:
+        merged[k] /= total
+
+    return merged
 
 def merge_heaps(results):
     merged = {
@@ -568,6 +599,7 @@ def run_monte_carlo():
             results = pool.map(mc_worker, tasks)
 
         means = merge_means(results)
+        std_deviations = merge_std_devs(results)
         reservoirs = merge_reservoirs(results)
         heaps = merge_heaps(results)
 
@@ -583,6 +615,7 @@ def run_monte_carlo():
 
             L_out[comp] = {
                 "mean": means[comp],
+                "std_deviations": std_deviations[comp],
                 "percentiles": {
                     "25": mid[0],
                     "50": mid[1],
@@ -606,7 +639,7 @@ if __name__ == "__main__":
     try:
         #run_monte_carlo()
         run_exact_distributions_to_5()
-        run_monte_carlo()
+        #run_monte_carlo()
     except Exception as e:
         print(type(e), str(e)[:500])
         raise

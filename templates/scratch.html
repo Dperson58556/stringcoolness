@@ -574,18 +574,23 @@
         const stats = document.createElement("div");
         stats.className = "stats";
 
-        stats.appendChild(makeStat("LENGTH", data.random_string.length));
         stats.appendChild(makeStat("% UNIQUE", data.percent_unique));
-        stats.appendChild(makeStat("ENTROPY", data.entropy));
-        stats.appendChild(makeStatBar("ENTROPY RARITY", data.entropy_rarity, data.entropy_bar_percent));
+        stats.appendChild(makeStatBar("LETTER POINTS", data.letter_points, data.letter_points_bar_percent));
+        stats.appendChild(makeStatBar("WORDS WITHIN BONUS", data.words_within_bonus, data.words_within_bonus_bar_percent));
+        stats.appendChild(makeStatBar("PALINDROME BONUS", data.palindrome_bonus, data.palindrome_bonus_bar_percent));
+        stats.appendChild(makeStatBar("CHAR BLOCKS BONUS", data.char_blocks_bonus, data.char_blocks_bonus_bar_percent));
+        stats.appendChild(makeStatBar("REPEATED CHUNKS", data.repeated_chunks_bonus, data.repeated_chunks_bonus_bar_percent));
         stats.appendChild(makeStatBar("VOWEL RATIO RARITY", data.vowel_ratio_rarity, data.vowel_ratio_bar_percent));
         
-        if (data.bookend != null){
-          stats.appendChild(makeStat("BOOKEND", data.bookend[0]));
-        } else {
-          stats.appendChild(makeStat("BOOKEND", 0));
-        }
-        stats.appendChild(makeStat("BIGRAM SCORE", data.bigram_bonus));
+        //if (data.bookend != null){
+        //  stats.appendChild(makeStat("BOOKEND", data.bookend[0]));
+        //} else {
+        //  stats.appendChild(makeStat("BOOKEND", 0));
+        //}
+
+        stats.appendChild(makeStatBar("BOOKEND", data.bookend_bonus, data.bookend_bonus_bar_percent));
+        //stats.appendChild(makeStat("BIGRAM SCORE", data.bigram_bonus));
+        stats.appendChild(makeStatBar("BIGRAM SCORE", data.bigram_bonus, data.bigram_bonus_bar_percent));
 
         ////////////////////////// Repeated Characters//////////////////////////
         const repeatsCharSection = document.createElement("div");
