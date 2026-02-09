@@ -356,6 +356,9 @@ def get_component_rarity(component, value, length):
     else:
         return "Mythical"
     
+def get_component_rarity_bar_percent(component, value, length):
+    return abs( value / float(score_component_percentiles[f"length_{length}"][f"{component}"]["percentiles"]["99.999"]))
+
     #   "row1": [0: "MEAN",
     #            1: "25PCTILE",
     #            2: "50PCTILE",

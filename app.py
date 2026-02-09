@@ -58,11 +58,14 @@ def generate_scored_string(length, word = None, debug = False):
     # BONUSES
     letter_points           = sum((2 * fi.letter_values[letter] * (repeated_1_strs[letter] if letter in repeated_1_strs else 1)) for letter in random_string)
     length_bonus            = 1 + ((length**1.25)/20)
-    entropy_bonus           = 1 + 2 * abs(entropy_rarity)
-    vowel_ratio_bonus       = 1 + 2 * abs(vowel_ratio_rarity)
+    entropy_bonus           = 1 + 3.2 * abs(entropy_rarity)
+    vowel_ratio_bonus       = 1 + 3 * abs(vowel_ratio_rarity)
     bookend_bonus           = bookend[0]*3.5 if bookend is not None else 1
-    bigram_bonus            = sum(fi.ENGLISH.get(random_string[i:i+2], 0) for i in range(len(random_string)-1))##################### NOT IMPLEMENTED YET #####################
+    bigram_bonus            = 1 + ( sum(fi.ENGLISH.get(random_string[i:i+2], 0) for i in range(len(random_string)-1)) / 350)##################### NOT IMPLEMENTED YET #####################
     
+    entropy_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("entropy_rarity", entropy_rarity, length) * 100)
+    vowel_ratio_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("vowel_ratio_rarity", vowel_ratio_rarity, length) * 100)
+
     for palindrome in palindromes:
         palindrome_letter_bonus = 0
         for char in palindrome[2]:
@@ -84,7 +87,7 @@ def generate_scored_string(length, word = None, debug = False):
     remaining_bonuses = (palindrome_bonus +
                         words_within_bonus +  
                         char_blocks_bonus +
-                        repeated_chunks_bonus)*length_bonus
+                        repeated_chunks_bonus)*length_bonus * bigram_bonus
     
     sub_total_points = (letter_points * 
                     length_bonus * 
@@ -120,7 +123,9 @@ def generate_scored_string(length, word = None, debug = False):
         "repeated_chunks_bonus": round(repeated_chunks_bonus, 5),
         "bigram_bonus": round(bigram_bonus, 5),
         "total_points": round(total_points),
-        "card_rarity": card_rarity
+        "card_rarity": card_rarity,
+        "entropy_bar_percent": round(entropy_bar_percent, 5),
+        "vowel_ratio_bar_percent": round(vowel_ratio_bar_percent, 5)
     }
 
 # APPLICATION SETUP
@@ -143,16 +148,16 @@ def generate_test_string():
 
 @app.route("/generate")
 def generate():
-    length = min(fi.LEN_LIMIT, int(request.args.get("length", 8)))
-    rolls = min(fi.ROLL_LIMIT, int(request.args.get("roll_count", 1)))
+    length = min(fi.LEN_LIMIT, int(request.args.get("length", 10)))
+    rolls = min(fi.ROLL_LIMIT, int(request.args.get("roll_count", 25)))
     results = []
 
-    while len(results) < rolls:
-        res = generate_scored_string(length)
-        if res["card_rarity"] in {"Epic", "Legendary", "Mythical"}:
-            results.append(res)
+    # while len(results) < rolls:
+    #     res = generate_scored_string(length)
+    #     if res["card_rarity"] in {"Legendary", "Mythical"}:
+    #         results.append(res)
 
-    #results = [generate_scored_string(length) for _ in range(rolls)]
+    results = [generate_scored_string(length) for _ in range(rolls)]
     return jsonify(results)
 
 if __name__ == "__main__":

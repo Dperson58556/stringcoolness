@@ -106,6 +106,10 @@
         font-weight: bold;
       }
 
+      .string-display .highlight {
+        font-weight: bold;
+      }
+
       .subsection {
         margin-top: 10px;
       }
@@ -291,20 +295,21 @@
 
       .stat-rarity .rarity-meter {
         margin-left: auto;
-        width: calc(100% - 250px);
+        width: calc(100% - 275px);
         max-width: 180px;
       }
 
       .rarity-meter {
-        width: min(160px, calc(100% - 250px));
+        width: min(100px, calc(100% - 100px));
         height: 10px;
         background: #222;
         border-radius: 2px;
+        border: #000000 solid 2px;
         overflow: hidden;
       }
 
       .rarity-bar {
-        width: 120px;
+        width: 100px;
         height: 12px;
         background: #222;
         border-radius: 0px;
@@ -313,7 +318,7 @@
 
       .rarity-fill {
         height: 100%;
-        background: linear-gradient(90deg, #ff0000, #ffff00,#00ff00);
+        /* background: linear-gradient(90deg, #ff0000, #ffff00,#00ff00); */
         transition: width 0.1s ease;
       }
 
@@ -327,11 +332,11 @@
     <div>
       <label>
         Length:
-        <input id="length" type="number" value="8">
+        <input id="length" type="number" value="10">
       </label>
       <label>
         Roll Count:
-        <input id="roll_count" type="number" value="1">
+        <input id="roll_count" type="number" value="25">
       </label>
       <button onclick="generate()">Generate</button>
     </div>
@@ -347,24 +352,20 @@
     <!-- <button onclick="generateDebugTable()">Debug: Generate Table</button> -->
 
     <div id="results"></div>
-    
-    <div class="card">
+
+    <!-- <div class="card">
       <div class="stat stat-rarity">
         <span class="stat-name">Rarity</span>
         <div class="rarity-meter">
           <div class="rarity-fill" style="width: 72%"></div>
         </div>
       </div>
-    </div>
+    </div> -->
 
 
     <div id="debug-area"></div>
 
-    <script>
-      // async function generateDebugTable() {
-         
-      // }
-      
+    <script> 
       async function generate() {
         const length = document.getElementById("length").value;
         const roll_count = document.getElementById("roll_count").value;
@@ -417,10 +418,6 @@
         else bar.style.background = "#e91e63";
       }
 
-      function zToPercent(z, cap = 4) {
-        return Math.min(Math.abs(z) / cap, 1) * 100;
-      }
-
       function makeStat(name, value) {
         if (name == "% UNIQUE"){
           value = value * 100.00
@@ -445,22 +442,77 @@
         return row;
       }
 
-      function makeStatBar(name, value) {
+      function makeStatBar(name, value, pct) {
+        let colors = {
+          0: "rgb(227, 0, 0)",
+          1: "rgb(227, 0, 0)",
+          2: "rgb(227, 0, 0)",
+          3: "rgb(240, 100, 0)",
+          4: "rgb(255, 195, 0)",
+          5: "rgb(255, 195, 0)",
+          6: "rgb(240, 240, 0)",
+          7: "rgb(240, 240, 0)",
+          8: "rgb(0, 230, 0)",
+          9: "rgb(0, 230, 0)",
+          10: "rgb(201, 255, 255)"
+        }
+
         const row = document.createElement("div");
-        row.className = "stat";
+        row.className = "stat stat-rarity";
 
         const label = document.createElement("div");
         label.className = "stat-name";
         label.textContent = name;
 
-        const val = document.createElement("div");
-        val.className = "rarity-bar";
-        val.textContent = value;
-        val.style.width = zToPercent(value) + "%";
+        const meter = document.createElement("div");
+        meter.className = "rarity-meter";
 
+        const fill = document.createElement("div");
+        fill.className = "rarity-fill";
+        fill.style.background = colors[Math.min(Math.round(pct/10))] || "rgb(201, 255, 255)";
+        fill.style.width = Math.max(pct,0.5) + "%";
+
+        // optional: show the value as text (tooltip or inline)
+        fill.title = value;
+
+        meter.appendChild(fill);
         row.appendChild(label);
-        row.appendChild(val);
+        row.appendChild(meter);
+
         return row;
+      }
+  
+      function makeHighlightedString(container, fullString, word, wordStart) {
+        const wordStyleByLength = {
+          3:  { color: "rgb(91, 196, 88)", glow: "0 0 6px rgba(91, 196, 88, 0.5)" },
+          4:  { color: "rgb(70, 179, 255)", glow: "0 0 6px rgba(70, 179, 255, 0.6)" },
+          5:  { color: "rgb(220, 100, 255)", glow: "0 0 8px rgba(220, 100, 255, 0.7)" },
+          6:  { color: "rgb(255, 170, 0)", glow: "0 0 10px rgba(255, 170, 0, 0.8)" },
+          7:  { color: "rgb(255, 255, 26)", glow: "0 0 10px rgba(255, 255, 26, 0.9)" },
+          8:  { color: "rgb(255, 0, 34)", glow: "0 0 10px rgba(255, 0, 34, 1.0)" },
+          9:  { color: "rgb(255, 169, 213)", glow: "0 0 10px rgba(255, 169, 213, 1.0)" },
+          10: { color: "rgb(173, 251, 255)", glow: "0 0 10px rgba(173, 251, 255, 1.0)" },
+        };
+        container.textContent = ""; // clear existing
+
+        const before = fullString.slice(0, wordStart);
+        const target = fullString.slice(wordStart, wordStart + word.length);
+        const after  = fullString.slice(wordStart + word.length);
+
+        container.appendChild(document.createTextNode(before));
+
+        const span = document.createElement("span");
+        span.className = "highlight";
+
+        const style = wordStyleByLength[Math.min(10,word.length)];
+        if (style) {
+          span.style.color = style.color;
+          span.style.textShadow = style.glow;
+        }
+
+        span.textContent = target;
+        container.appendChild(span);
+        container.appendChild(document.createTextNode(after));
       }
 
       function createCard(data) {
@@ -491,9 +543,23 @@
         header.appendChild(score);
 
         ////////////////////////// String Display//////////////////////////
+        // const stringDisplay = document.createElement("div");
+        // stringDisplay.className = "string-display";
+        // stringDisplay.textContent = data.random_string;
+
         const stringDisplay = document.createElement("div");
         stringDisplay.className = "string-display";
-        stringDisplay.textContent = data.random_string;
+
+        if (data.words_within[0]) {
+          makeHighlightedString(
+            stringDisplay,
+            data.random_string,
+            data.words_within[0][2],
+            data.words_within[0][0]
+          )
+        } else {
+          stringDisplay.textContent = data.random_string;
+        };
 
         ////////////////////////// Stats//////////////////////////
         const statsTitleHolder = document.createElement("div");
@@ -511,9 +577,9 @@
         stats.appendChild(makeStat("LENGTH", data.random_string.length));
         stats.appendChild(makeStat("% UNIQUE", data.percent_unique));
         stats.appendChild(makeStat("ENTROPY", data.entropy));
-        stats.appendChild(makeStat("ENTROPY RARITY", data.entropy_rarity));
-        stats.appendChild(makeStatBar("ENTROPY RARITY", data.entropy_rarity));
-        stats.appendChild(makeStat("VOWEL RATIO RARITY", data.vowel_ratio_rarity));
+        stats.appendChild(makeStatBar("ENTROPY RARITY", data.entropy_rarity, data.entropy_bar_percent));
+        stats.appendChild(makeStatBar("VOWEL RATIO RARITY", data.vowel_ratio_rarity, data.vowel_ratio_bar_percent));
+        
         if (data.bookend != null){
           stats.appendChild(makeStat("BOOKEND", data.bookend[0]));
         } else {
