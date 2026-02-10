@@ -31,7 +31,7 @@ def generate_scored_string(length, word = None, debug = False):
     if word:
         random_string = word
 
-    #### GRAB PARAMETERS #####
+    ##### GRAB PARAMETERS #####
     words_within = fi.find_words_in_string(random_string, english_trie, min_length=3)
 
     repeated_1_strs = {}
@@ -55,14 +55,13 @@ def generate_scored_string(length, word = None, debug = False):
             char_blocks_dict[elem[2]] = 1
         else:
             char_blocks_dict[elem[2]] += 1
+
     percent_unique = fi.pct_unique(random_string)
-    vowel_ratio = fi.vowel_ratio(random_string)
-    vowel_ratio_rarity = fi.vowel_ratio_rarity_z_score(random_string)
+    vowel_ratio, vowel_ratio_rarity = fi.vowel_ratio_rarity_z_score(random_string)
     entropy, entropy_rarity = fi.entropy_rarity_z_score(random_string)
-    entropy = fi.string_entropy(random_string)
     bookend = fi.maximal_bookend(random_string)
 
-    #### CALCULATE POINTS #####
+    ##### CALCULATE POINTS #####
     letter_points = 0
     length_bonus = 0
     entropy_bonus = 0
@@ -95,7 +94,7 @@ def generate_scored_string(length, word = None, debug = False):
 
     for block in char_blocks:
         for char in block[2]:
-            char_blocks_bonus += ((2 * fi.letter_values[char])**1.4) * ((len(block[2]))**4)
+            char_blocks_bonus += ((2 * fi.letter_values[char])**1.4) * ((len(block[2]))**4.6)
 
     for chunk in repeated_chunks:
         for char in chunk:
@@ -106,7 +105,6 @@ def generate_scored_string(length, word = None, debug = False):
                     entropy_bonus * 
                     vowel_ratio_bonus * 
                     bookend_bonus)
-    
     remaining_bonuses = (palindrome_bonus +
                         words_within_bonus +  
                         char_blocks_bonus +
@@ -118,38 +116,47 @@ def generate_scored_string(length, word = None, debug = False):
 
     # card_rarity = fi.get_component_rarity("total_points", total_points, length)
     
+    # #xrfympwprlimlegatorf
+    # letter_points_bar_percent =         fi.get_component_rarity_bar_percent("letter_points",letter_points,length)
+    # words_within_bonus_bar_percent =    fi.get_component_rarity_bar_percent("words_within_bonus",words_within_bonus,length)*1.5 if words_within_bonus else 0
+    # palindrome_bonus_bar_percent =      fi.get_component_rarity_bar_percent("palindrome_bonus",palindrome_bonus,length) if palindrome_bonus else 0
+    # char_blocks_bonus_bar_percent =     fi.get_component_rarity_bar_percent("char_blocks_bonus",char_blocks_bonus,length) if char_blocks_bonus else 0
+    # repeated_chunks_bonus_bar_percent = fi.get_component_rarity_bar_percent("repeated_chunks_bonus",repeated_chunks_bonus,length)*.5 if repeated_chunks_bonus else 0
+    # entropy_bar_percent =               fi.get_component_rarity_bar_percent("entropy",entropy,length)
+    # vowel_ratio_bar_percent =           fi.get_component_rarity_bar_percent("vowel_ratio", vowel_ratio,length)
+    # bookend_bonus_bar_percent =         fi.get_component_rarity_bar_percent("bookend_bonus",bookend_bonus,length) if bookend else 0
+    # bigram_bonus_bar_percent =          fi.get_component_rarity_bar_percent("bigram_bonus",bigram_bonus,length)
     
-    # letter_points_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("letter_points", letter_points, length) * 100)
-    # words_within_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("words_within_bonus", words_within_bonus, length) * 100)
-    # palindrome_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("palindrome_bonus", palindrome_bonus, length) * 100)
-    # char_blocks_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("char_blocks_bonus", char_blocks_bonus, length) * 100)
-    # repeated_chunks_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("repeated_chunks_bonus", repeated_chunks_bonus, length) * 100)
+    # print(
+    # f"letter_points_bar_percent:         {letter_points_bar_percent}\n"
+    # f"words_within_bonus_bar_percent:    {words_within_bonus_bar_percent}\n"
+    # f"palindrome_bonus_bar_percent:      {palindrome_bonus_bar_percent}\n"
+    # f"char_blocks_bonus_bar_percent:     {char_blocks_bonus_bar_percent}\n"
+    # f"repeated_chunks_bonus_bar_percent: {repeated_chunks_bonus_bar_percent}\n"
+    # f"entropy_bar_percent:               {entropy_bar_percent}\n"
+    # f"vowel_ratio_bar_percent:           {vowel_ratio_bar_percent}\n"
+    # f"bookend_bonus_bar_percent:         {bookend_bonus_bar_percent}\n"
+    # f"bigram_bonus_bar_percent:          {bigram_bonus_bar_percent}"
+    # )
 
     
-    # entropy_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("entropy_rarity", entropy_rarity, length) * 100)
-    # vowel_ratio_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("vowel_ratio_rarity", vowel_ratio_rarity, length) * 100)
-    # bookend_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("bookend_bonus", 0 if bookend_bonus==1 else bookend_bonus, length) * 100)
-    # bigram_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("bigram_bonus", bigram_bonus - 1, length) * 100)
-    
-    
-    
     return {
-        # "random_string": random_string,
-        # "repeated_1_strs": repeated_1_strs,
-        # "repeated_chunks": repeated_chunks,
-        # "bookend": bookend,
-        # "palindromes": palindromes,
-        # "char_blocks": char_blocks,
-        # "char_blocks_dict": char_blocks_dict,
-        # "words_within": words_within,
-        "entropy": round(entropy, 5),
-        "vowel_ratio": round(vowel_ratio, 5),
+        #"random_string": random_string,
+        #"repeated_1_strs": repeated_1_strs,
+        #"repeated_chunks": repeated_chunks,
+        #"bookend": bookend,
+        #"palindromes": palindromes,
+        #"char_blocks": char_blocks,
+        #"char_blocks_dict": char_blocks_dict,
+        #"words_within": words_within,
         "percent_unique": round(percent_unique,5),
-        # "vowel_ratio_rarity": round(vowel_ratio_rarity, 5),
-        # "entropy_rarity": round(entropy_rarity, 5),
+        #"vowel_ratio_rarity": round(vowel_ratio_rarity, 5),
+        "entropy": round(entropy, 5),
+        "vowel_ratio": round(vowel_ratio,5),
+        #"entropy_rarity": round(entropy_rarity, 5),
         "letter_points": letter_points,
-        # "length_bonus": round(length_bonus, 5),
-        # "entropy_bonus": round(entropy_bonus, 5),
+        #"length_bonus": round(length_bonus, 5),
+        "entropy_bonus": round(entropy_bonus, 5),
         "vowel_ratio_bonus": round(vowel_ratio_bonus, 5),
         "bookend_bonus": round(bookend_bonus, 5),
         "palindrome_bonus": round(palindrome_bonus, 5),
@@ -160,16 +167,16 @@ def generate_scored_string(length, word = None, debug = False):
         "basic_bonuses": round(basic_bonuses, 5),
         "remaining_bonuses": round(remaining_bonuses, 5),
         "total_points": round(total_points)#,
-    #     "card_rarity": card_rarity,
-    #     "entropy_bar_percent": round(entropy_bar_percent, 5),
-    #     "vowel_ratio_bar_percent": round(vowel_ratio_bar_percent, 5),
-    #     "bookend_bonus_bar_percent": round(bookend_bonus_bar_percent, 5),
-    #     "bigram_bonus_bar_percent": round(bigram_bonus_bar_percent, 5),
-    #     "letter_points_bar_percent": round(letter_points_bar_percent, 5),
-    #     "words_within_bonus_bar_percent": round(words_within_bonus_bar_percent, 5),
-    #     "palindrome_bonus_bar_percent": round(palindrome_bonus_bar_percent, 5),
-    #     "char_blocks_bonus_bar_percent": round(char_blocks_bonus_bar_percent, 5),
-    #     "repeated_chunks_bonus_bar_percent": round(repeated_chunks_bonus_bar_percent, 5)
+        # "card_rarity": card_rarity,
+        # "entropy_bar_percent": round(entropy_bar_percent, 5),
+        # "vowel_ratio_bar_percent": round(vowel_ratio_bar_percent, 5),
+        # "bookend_bonus_bar_percent": round(bookend_bonus_bar_percent, 5),
+        # "bigram_bonus_bar_percent": round(bigram_bonus_bar_percent, 5),
+        # "letter_points_bar_percent": round(letter_points_bar_percent, 5),
+        # "words_within_bonus_bar_percent": round(words_within_bonus_bar_percent, 5),
+        # "palindrome_bonus_bar_percent": round(palindrome_bonus_bar_percent, 5),
+        # "char_blocks_bonus_bar_percent": round(char_blocks_bonus_bar_percent, 5),
+        # "repeated_chunks_bonus_bar_percent": round(repeated_chunks_bonus_bar_percent, 5)
     }
 
 
@@ -392,10 +399,11 @@ def run_length(L, N=10_000_000):
 # ]
 
 COMPONENTS = [
+    "percent_unique",
     "entropy",
     "vowel_ratio",
-    "percent_unique",
     "letter_points",
+    "entropy_bonus",
     "vowel_ratio_bonus",
     "bookend_bonus",
     "palindrome_bonus",
@@ -410,7 +418,7 @@ COMPONENTS = [
 
 PERCENTILES = [25, 50, 75, 90, 99, 99.9, 99.99, 99.999]
 
-OUTPUT_FILE = "score_component_percentiles_with_std_dev_only_entropy_and_vowel_ratio_2_thru_5.json"
+OUTPUT_FILE = "score_component_percentiles_with_std_dev_2.json"
 
 # ----------------
 
@@ -664,7 +672,7 @@ if __name__ == "__main__":
     #run_exact_distributions_to_5()
     try:
         run_exact_distributions_to_5()
-        #run_monte_carlo()
+        run_monte_carlo()
     except Exception as e:
         print(type(e), str(e)[:500])
         raise
