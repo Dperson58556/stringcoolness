@@ -295,7 +295,7 @@
 
       .stat-rarity .rarity-meter {
         margin-left: auto;
-        width: calc(100% - 275px);
+        width: calc(100% - 250px);
         max-width: 180px;
       }
 
@@ -448,13 +448,13 @@
           1: "rgb(227, 0, 0)",
           2: "rgb(227, 0, 0)",
           3: "rgb(240, 100, 0)",
-          4: "rgb(255, 195, 0)",
+          4: "rgb(240, 100, 0)",
           5: "rgb(255, 195, 0)",
-          6: "rgb(240, 240, 0)",
+          6: "rgb(255, 195, 0)",
           7: "rgb(240, 240, 0)",
-          8: "rgb(0, 230, 0)",
+          8: "rgb(240, 240, 0)",
           9: "rgb(0, 230, 0)",
-          10: "rgb(201, 255, 255)"
+          10: "rgb(0, 230, 0)"
         }
 
         const row = document.createElement("div");
@@ -469,8 +469,8 @@
 
         const fill = document.createElement("div");
         fill.className = "rarity-fill";
-        fill.style.background = colors[Math.min(Math.round(pct/10))] || "rgb(201, 255, 255)";
-        fill.style.width = Math.max(pct,0.5) + "%";
+        fill.style.background = colors[Math.min(Math.round(pct/10))] || "rgb(150, 255, 255)";
+        fill.style.width = pct + "%";
 
         // optional: show the value as text (tooltip or inline)
         fill.title = value;
@@ -574,23 +574,23 @@
         const stats = document.createElement("div");
         stats.className = "stats";
 
-        stats.appendChild(makeStat("% UNIQUE", data.percent_unique));
         stats.appendChild(makeStatBar("LETTER POINTS", data.letter_points, data.letter_points_bar_percent));
         stats.appendChild(makeStatBar("WORDS WITHIN BONUS", data.words_within_bonus, data.words_within_bonus_bar_percent));
         stats.appendChild(makeStatBar("PALINDROME BONUS", data.palindrome_bonus, data.palindrome_bonus_bar_percent));
         stats.appendChild(makeStatBar("CHAR BLOCKS BONUS", data.char_blocks_bonus, data.char_blocks_bonus_bar_percent));
         stats.appendChild(makeStatBar("REPEATED CHUNKS", data.repeated_chunks_bonus, data.repeated_chunks_bonus_bar_percent));
-        stats.appendChild(makeStatBar("VOWEL RATIO RARITY", data.vowel_ratio_rarity, data.vowel_ratio_bar_percent));
-        
+        //stats.appendChild(makeStatBar("VOWEL RATIO", data.vowel_ratio, data.vowel_ratio_bar_percent));
+        stats.appendChild(makeStatBar("ENTROPY", data.entropy, data.entropy_bar_percent));
+        stats.appendChild(makeStatBar("BOOKEND", data.bookend_bonus, data.bookend_bonus_bar_percent));
+        stats.appendChild(makeStatBar("BIGRAM SCORE", data.bigram_bonus, data.bigram_bonus_bar_percent));
+
         //if (data.bookend != null){
         //  stats.appendChild(makeStat("BOOKEND", data.bookend[0]));
         //} else {
         //  stats.appendChild(makeStat("BOOKEND", 0));
         //}
 
-        stats.appendChild(makeStatBar("BOOKEND", data.bookend_bonus, data.bookend_bonus_bar_percent));
-        //stats.appendChild(makeStat("BIGRAM SCORE", data.bigram_bonus));
-        stats.appendChild(makeStatBar("BIGRAM SCORE", data.bigram_bonus, data.bigram_bonus_bar_percent));
+        
 
         ////////////////////////// Repeated Characters//////////////////////////
         const repeatsCharSection = document.createElement("div");

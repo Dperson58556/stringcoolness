@@ -12,7 +12,7 @@ ROLL_LIMIT = 5000
 RARITY_SCALAR = 1
 
 scp = {}
-with open("score_component_percentiles.json", "r") as f:
+with open("score_component_percentiles_with_std_dev.json", "r") as f:
     scp = json.load(f)
 
 ############################ STRUCTURE-RELATED PARAMETERS ############################
@@ -145,9 +145,19 @@ def character_blocks(text: str):
 
         index += 1
 
+def vowel_ratio(s):
+    s = s
+    n = len(s)
+    if n == 0:
+        return 0.0
+ 
+    vowels = set("aeiou")
+    V = sum(1 for c in s if c in vowels)
+    return V / n
+
 ##### VOWEL TO CONSONANT RATIO Z-SCORE #####
 def vowel_ratio_rarity_z_score(s: str) -> float:
-    """
+    """ 
     Computes the Z-score of the observed vowel count
     against the expected vowel ratio (5/26).
 
@@ -168,7 +178,7 @@ def vowel_ratio_rarity_z_score(s: str) -> float:
     if variance == 0:
         return 0.0
 
-    return (V - expected) / math.sqrt(variance)
+    return (V/n), ((V - expected) / math.sqrt(variance))
 
 ##### STRING ENTROPY #####
 def string_entropy(s: str) -> float:
@@ -224,9 +234,17 @@ entropy_avg_stds = [entropy_avg_std(x) for x in range(1,33)]
 
 def entropy_rarity_z_score(s):
     e = string_entropy(s)
-    e_mean = float(scp[f"length_{len(s)}"]["entropy_rarity"]["mean"])
+    e_mean = float(entropy_avg_std(len(s)))
     rarity_z_score = (e - e_mean / entropy_avg_std(len(s)))
     return e, rarity_z_score
+
+############################ SCORE COMPONENT Z-SCORES ############################
+
+def component_z_score(strlen, value, name):
+    value_mean = float(scp[f"length_{strlen}"][f"{name}"]["mean"])
+    value_std_dev = float(scp[f"length_{strlen}"][f"{name}"]["std_dev"])
+
+    return (value - value_mean) / (value_std_dev)
 
 ############################ ENGLISH-RELATED PARAMETERS ############################
 
@@ -359,7 +377,7 @@ def get_component_rarity(component, value, length):
         return "Mythical"
     
 def get_component_rarity_bar_percent(component, value, length):
-    good_max = float(scp[f"length_{length}"][f"{component}"]["percentiles"]["99.999"])
-    if component == "bigram_bonus":
-        good_max -= 1
-    return abs( value / good_max)
+    z = component_z_score(length, value, component)
+    good_max = 5.0
+
+    return abs( z / good_max ) * 100

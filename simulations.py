@@ -31,7 +31,7 @@ def generate_scored_string(length, word = None, debug = False):
     if word:
         random_string = word
 
-    ##### GRAB PARAMETERS #####
+    #### GRAB PARAMETERS #####
     words_within = fi.find_words_in_string(random_string, english_trie, min_length=3)
 
     repeated_1_strs = {}
@@ -56,11 +56,13 @@ def generate_scored_string(length, word = None, debug = False):
         else:
             char_blocks_dict[elem[2]] += 1
     percent_unique = fi.pct_unique(random_string)
+    vowel_ratio = fi.vowel_ratio(random_string)
     vowel_ratio_rarity = fi.vowel_ratio_rarity_z_score(random_string)
     entropy, entropy_rarity = fi.entropy_rarity_z_score(random_string)
+    entropy = fi.string_entropy(random_string)
     bookend = fi.maximal_bookend(random_string)
 
-    ##### CALCULATE POINTS #####
+    #### CALCULATE POINTS #####
     letter_points = 0
     length_bonus = 0
     entropy_bonus = 0
@@ -140,9 +142,10 @@ def generate_scored_string(length, word = None, debug = False):
         # "char_blocks": char_blocks,
         # "char_blocks_dict": char_blocks_dict,
         # "words_within": words_within,
+        "entropy": round(entropy, 5),
+        "vowel_ratio": round(vowel_ratio, 5),
         "percent_unique": round(percent_unique,5),
         # "vowel_ratio_rarity": round(vowel_ratio_rarity, 5),
-        # "entropy": round(entropy, 5),
         # "entropy_rarity": round(entropy_rarity, 5),
         "letter_points": letter_points,
         # "length_bonus": round(length_bonus, 5),
@@ -389,6 +392,8 @@ def run_length(L, N=10_000_000):
 # ]
 
 COMPONENTS = [
+    "entropy",
+    "vowel_ratio",
     "percent_unique",
     "letter_points",
     "vowel_ratio_bonus",
@@ -405,7 +410,7 @@ COMPONENTS = [
 
 PERCENTILES = [25, 50, 75, 90, 99, 99.9, 99.99, 99.999]
 
-OUTPUT_FILE = "score_component_percentiles_with_std_dev.json"
+OUTPUT_FILE = "score_component_percentiles_with_std_dev_only_entropy_and_vowel_ratio_2_thru_5.json"
 
 # ----------------
 
@@ -414,7 +419,7 @@ def run_exact_distributions_to_5():
     output = {}
 
     print("Starting exact distribution calculations, L = 2 to 5...")
-    for L in range(2, 5):
+    for L in range(2, 6):
         print(f"\n=== Processing L = {L} ===")
 
         N = 26 ** L
@@ -465,6 +470,7 @@ def run_exact_distributions_to_5():
 
 
 N_TOTAL = 10_000_000
+# N_TOTAL = 300
 # Reservoir for mid-quantiles
 MID_PCTS = [25, 50, 75, 90]
 RESERVOIR_SIZE = 50_000
@@ -478,31 +484,50 @@ TAIL_PCTS = {
 }
 L_VALUES = range(6,33)
 
-def merge_means(results):
-    total = sum(r[0] for r in results)
-    merged = {k: 0.0 for k in COMPONENTS}
+# def merge_means(results):
+#     total = sum(r[0] for r in results)
+#     merged = {k: 0.0 for k in COMPONENTS}
 
-    for count, means, _, _ in results:
+#     for count, means, _, _ in results:
+#         for k in COMPONENTS:
+#             merged[k] += means[k] * count
+
+#     for k in merged:
+#         merged[k] /= total
+
+#     return merged
+
+def merge_variances(results):
+    merged_mean = {k: 0.0 for k in COMPONENTS}
+    merged_M2   = {k: 0.0 for k in COMPONENTS}
+    total_n = 0
+
+    for n, means, M2s, _, _ in results:
+        if total_n == 0:
+            merged_mean = means.copy()
+            merged_M2   = M2s.copy()
+            total_n = n
+            continue
+
         for k in COMPONENTS:
-            merged[k] += means[k] * count
+            delta = means[k] - merged_mean[k]
+            new_n = total_n + n
 
-    for k in merged:
-        merged[k] /= total
+            merged_M2[k] += (
+                M2s[k] +
+                delta * delta * total_n * n / new_n
+            )
 
-    return merged
+            merged_mean[k] += delta * n / new_n
 
-def merge_std_devs(results):
-    total = sum(r[0] for r in results)
-    merged = {k: 0.0 for k in COMPONENTS}
+        total_n = new_n
 
-    for count, std_deviations, _, _ in results:
-        for k in COMPONENTS:
-            merged[k] += std_deviations[k] * count
+    stddevs = {
+        k: math.sqrt(merged_M2[k] / total_n)
+        for k in COMPONENTS
+    }
 
-    for k in merged:
-        merged[k] /= total
-
-    return merged
+    return total_n, merged_mean, stddevs
 
 def merge_heaps(results):
     merged = {
@@ -510,7 +535,7 @@ def merge_heaps(results):
         for k in COMPONENTS
     }
 
-    for _, _, _, heaps in results:
+    for _, _, _, _, heaps in results:
         for comp in COMPONENTS:
             for pct in TAIL_PCTS:
                 merged[comp][pct].extend(heaps[comp][pct])
@@ -533,7 +558,7 @@ def reservoir_update(reservoir, seen, value):
 def merge_reservoirs(results):
     merged = {k: [] for k in COMPONENTS}
 
-    for _, _, reservoirs, _ in results:
+    for _, _, _, reservoirs, _ in results:
         for k in COMPONENTS:
             merged[k].extend(reservoirs[k])
 
@@ -543,11 +568,13 @@ def merge_reservoirs(results):
 
     return merged
 
+
 def mc_worker(args):
     L, N = args
     pid = os.getpid()
 
     means = {k: 0.0 for k in COMPONENTS}
+    M2s   = {k: 0.0 for k in COMPONENTS}
     reservoirs = {k: [] for k in COMPONENTS}
     heaps = {
         k: {p: [] for p in TAIL_PCTS}
@@ -563,13 +590,16 @@ def mc_worker(args):
         for name in COMPONENTS:
             v = r[name]
 
-            # running mean
-            means[name] += (v - means[name]) / count
+            # Welford update
+            delta = v - means[name]
+            means[name] += delta / count
+            delta2 = v - means[name]
+            M2s[name] += delta * delta2
 
-            # reservoir for mid percentiles
+            # reservoir (25–90)
             reservoir_update(reservoirs[name], count, v)
 
-            # tail heaps
+            # tail heaps (99+)
             for pct, frac in TAIL_PCTS.items():
                 k = max(1, int(N_TOTAL * frac))
                 h = heaps[name][pct]
@@ -580,10 +610,9 @@ def mc_worker(args):
                     heapq.heapreplace(h, v)
 
         if i % 20_000 == 0:
-            print(f"L={L}, PID={pid}: {i:,}/{N:,} ({100 * i / N:.2f}%)")
+            print(f"length_{L}, PID={pid}: {i:,}/{N:,}")
 
-    return count, means, reservoirs, heaps
-
+    return count, means, M2s, reservoirs, heaps
 
 def run_monte_carlo():
     workers = cpu_count()
@@ -598,8 +627,7 @@ def run_monte_carlo():
         with Pool(workers) as pool:
             results = pool.map(mc_worker, tasks)
 
-        means = merge_means(results)
-        std_deviations = merge_std_devs(results)
+        total_n, means, stddevs = merge_variances(results)
         reservoirs = merge_reservoirs(results)
         heaps = merge_heaps(results)
 
@@ -615,7 +643,7 @@ def run_monte_carlo():
 
             L_out[comp] = {
                 "mean": means[comp],
-                "std_deviations": std_deviations[comp],
+                "std_dev": stddevs[comp],
                 "percentiles": {
                     "25": mid[0],
                     "50": mid[1],
@@ -632,14 +660,106 @@ def run_monte_carlo():
 
     print("\nDone.")
 
-
-
 if __name__ == "__main__":
     #run_exact_distributions_to_5()
     try:
-        #run_monte_carlo()
         run_exact_distributions_to_5()
         #run_monte_carlo()
     except Exception as e:
         print(type(e), str(e)[:500])
         raise
+
+# def mc_worker(args):
+#     L, N = args
+#     pid = os.getpid()
+
+#     means = {k: 0.0 for k in COMPONENTS}
+#     M2s   = {k: 0.0 for k in COMPONENTS}
+#     reservoirs = {k: [] for k in COMPONENTS}
+#     heaps = {
+#         k: {p: [] for p in TAIL_PCTS}
+#         for k in COMPONENTS
+#     }
+
+#     count = 0
+
+#     for i in range(1, N + 1):
+#         r = generate_scored_string(L)
+#         count += 1
+
+#         for name in COMPONENTS:
+#             v = r[name]
+
+#             delta = v - means[name]
+#             means[name] += delta / count
+#             delta2 = v - means[name]
+#             M2s[name] += delta * delta2
+
+#             # reservoir for mid percentiles
+#             reservoir_update(reservoirs[name], count, v)
+
+#             # tail heaps
+#             for pct, frac in TAIL_PCTS.items():
+#                 k = max(1, int(N_TOTAL * frac))
+#                 h = heaps[name][pct]
+
+#                 if len(h) < k:
+#                     heapq.heappush(h, v)
+#                 elif v > h[0]:
+#                     heapq.heapreplace(h, v)
+
+#         if i % 20_000 == 0:
+#             print(f"L={L}, PID={pid}: {i:,}/{N:,} ({100 * i / N:.2f}%)")
+
+#     return count, means, M2s, reservoirs, heaps
+
+
+# def run_monte_carlo():
+#     workers = cpu_count()
+#     output = {}
+
+#     for L in L_VALUES:
+#         print(f"\n=== Monte Carlo L={L} ===")
+
+#         per_worker = N_TOTAL // workers
+#         tasks = [(L, per_worker)] * workers
+
+#         with Pool(workers) as pool:
+#             results = pool.map(mc_worker, tasks)
+
+#         means = merge_means(results)
+#         std_deviations = merge_std_devs(results)
+#         reservoirs = merge_reservoirs(results)
+#         heaps = merge_heaps(results)
+
+#         L_out = {}
+
+#         for comp in COMPONENTS:
+#             mid = np.percentile(reservoirs[comp], MID_PCTS)
+
+#             tail = {
+#                 str(p): min(heaps[comp][p])
+#                 for p in TAIL_PCTS
+#             }
+
+#             L_out[comp] = {
+#                 "mean": means[comp],
+#                 "std_deviations": std_deviations[comp],
+#                 "percentiles": {
+#                     "25": mid[0],
+#                     "50": mid[1],
+#                     "75": mid[2],
+#                     "90": mid[3],
+#                     **tail
+#                 }
+#             }
+
+#         output[f"length_{L}"] = L_out
+
+#     with open(OUTPUT_FILE, "a") as f:
+#         json.dump(output, f, indent=2)
+
+#     print("\nDone.")
+
+
+

@@ -37,8 +37,9 @@ def generate_scored_string(length, word = None, debug = False):
             char_blocks_dict[elem[2]] = 1
         else:
             char_blocks_dict[elem[2]] += 1
+
     percent_unique = fi.pct_unique(random_string)
-    vowel_ratio_rarity = fi.vowel_ratio_rarity_z_score(random_string)
+    vowel_ratio, vowel_ratio_rarity = fi.vowel_ratio_rarity_z_score(random_string)
     entropy, entropy_rarity = fi.entropy_rarity_z_score(random_string)
     bookend = fi.maximal_bookend(random_string)
 
@@ -75,7 +76,7 @@ def generate_scored_string(length, word = None, debug = False):
 
     for block in char_blocks:
         for char in block[2]:
-            char_blocks_bonus += ((2 * fi.letter_values[char])**1.4) * ((len(block[2]))**4)
+            char_blocks_bonus += ((2 * fi.letter_values[char])**1.4) * ((len(block[2]))**4.6)
 
     for chunk in repeated_chunks:
         for char in chunk:
@@ -96,20 +97,29 @@ def generate_scored_string(length, word = None, debug = False):
 
     card_rarity = fi.get_component_rarity("total_points", total_points, length)
     
+    #xrfympwprlimlegatorf
+    letter_points_bar_percent =         fi.get_component_rarity_bar_percent("letter_points",letter_points,length)
+    words_within_bonus_bar_percent =    fi.get_component_rarity_bar_percent("words_within_bonus",words_within_bonus,length)*1.5 if words_within_bonus else 0
+    palindrome_bonus_bar_percent =      fi.get_component_rarity_bar_percent("palindrome_bonus",palindrome_bonus,length) if palindrome_bonus else 0
+    char_blocks_bonus_bar_percent =     fi.get_component_rarity_bar_percent("char_blocks_bonus",char_blocks_bonus,length) if char_blocks_bonus else 0
+    repeated_chunks_bonus_bar_percent = fi.get_component_rarity_bar_percent("repeated_chunks_bonus",repeated_chunks_bonus,length)*.5 if repeated_chunks_bonus else 0
+    entropy_bar_percent =               fi.get_component_rarity_bar_percent("entropy",entropy,length)
+    vowel_ratio_bar_percent =           fi.get_component_rarity_bar_percent("vowel_ratio", vowel_ratio,length)
+    bookend_bonus_bar_percent =         fi.get_component_rarity_bar_percent("bookend_bonus",bookend_bonus,length) if bookend else 0
+    bigram_bonus_bar_percent =          fi.get_component_rarity_bar_percent("bigram_bonus",bigram_bonus,length)
     
-    letter_points_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("letter_points", letter_points, length) * 100)
-    words_within_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("words_within_bonus", words_within_bonus, length) * 100)
-    palindrome_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("palindrome_bonus", palindrome_bonus, length) * 100)
-    char_blocks_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("char_blocks_bonus", char_blocks_bonus, length) * 100)
-    repeated_chunks_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("repeated_chunks_bonus", repeated_chunks_bonus, length) * 100)
+    # print(
+    # f"letter_points_bar_percent:         {letter_points_bar_percent}\n"
+    # f"words_within_bonus_bar_percent:    {words_within_bonus_bar_percent}\n"
+    # f"palindrome_bonus_bar_percent:      {palindrome_bonus_bar_percent}\n"
+    # f"char_blocks_bonus_bar_percent:     {char_blocks_bonus_bar_percent}\n"
+    # f"repeated_chunks_bonus_bar_percent: {repeated_chunks_bonus_bar_percent}\n"
+    # f"entropy_bar_percent:               {entropy_bar_percent}\n"
+    # f"vowel_ratio_bar_percent:           {vowel_ratio_bar_percent}\n"
+    # f"bookend_bonus_bar_percent:         {bookend_bonus_bar_percent}\n"
+    # f"bigram_bonus_bar_percent:          {bigram_bonus_bar_percent}"
+    # )
 
-    
-    entropy_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("entropy_rarity", entropy_rarity, length) * 100)
-    vowel_ratio_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("vowel_ratio_rarity", vowel_ratio_rarity, length) * 100)
-    bookend_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("bookend_bonus", 0 if bookend_bonus==1 else bookend_bonus, length) * 100)
-    bigram_bonus_bar_percent = min(100.0, fi.get_component_rarity_bar_percent("bigram_bonus", bigram_bonus - 1, length) * 100)
-    
-    
     
     return {
         "random_string": random_string,
@@ -171,12 +181,15 @@ def generate():
     rolls = min(fi.ROLL_LIMIT, int(request.args.get("roll_count", 25)))
     results = []
 
-    while len(results) < rolls:
-        res = generate_scored_string(length)
-        if res["card_rarity"] in {"Epic", "Legendary", "Mythical"}:
-            results.append(res)
+    debug = 1
 
-    #results = [generate_scored_string(length) for _ in range(rolls)]
+    if debug == 1:
+        while len(results) < rolls:
+            res = generate_scored_string(length)
+            if res["card_rarity"] in {"Legendary", "Mythical"}:
+                results.append(res)
+    else:
+        results = [generate_scored_string(length) for _ in range(rolls)]
     return jsonify(results)
 
 if __name__ == "__main__":
