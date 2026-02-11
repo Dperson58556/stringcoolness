@@ -181,7 +181,7 @@ def generate():
     rolls = min(fi.ROLL_LIMIT, int(request.args.get("roll_count", 25)))
     results = []
 
-    debug = 1
+    debug = 0
 
     if debug == 1:
         while len(results) < rolls:
@@ -193,4 +193,5 @@ def generate():
     return jsonify(results)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    #app.run(debug=True)
+    app.run()
