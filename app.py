@@ -166,12 +166,21 @@ def index():
 
 @app.route("/generate_test_string")
 def generate_test_string():
-    test_strings_string = str(request.args.get("test_string"))#[:fi.LEN_LIMIT]
+    test_strings_string = str(request.args.get("test_string"))[:fi.LEN_LIMIT].lower()
 
-    test_strings_list = [item[:fi.LEN_LIMIT] for item in test_strings_string.split(",") if item]
+    test_strings_list = [item[:fi.LEN_LIMIT].strip().lower() for item in test_strings_string.split(",") if item][:fi.ROLL_LIMIT]
     #rolls = int(request.args.get("roll_count", 1))
 
-    results = [generate_scored_string(len(test_string), test_string) for test_string in test_strings_list]
+    invalid = False
+    for ts in test_strings_list:
+        if (not ts.isalpha()) or (len(ts)<2):
+            invalid = True
+
+    invalid_string = "invalidinput"
+    if invalid:
+        results = [generate_scored_string(len(invalid_string), invalid_string)]
+    else:
+        results = [generate_scored_string(len(test_string), test_string) for test_string in test_strings_list]
 
     return jsonify(results)
 

@@ -8,7 +8,7 @@ from english_bigrams import ENGLISH
 
 ###################################### CONSTANTS ######################################
 LEN_LIMIT = 32
-ROLL_LIMIT = 5000
+ROLL_LIMIT = 10
 RARITY_SCALAR = 1
 
 scp = {}

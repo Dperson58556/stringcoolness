@@ -328,7 +328,11 @@
   <body>
 
     <h1>String Scorer</h1>
-
+    <h2>Generates unique trading cards for any* string of letters</h2>
+    <h3>1: Only the 26 letters of the English alphabet allowed</h3>
+    <h3>2: Min Length = 2, Max Length = 32</h3>
+    <h3>3: Max Roll Count = 25 </h3>
+    <h3>4: In Card Lookup, if you want to see multiple cards (up to 25 at once), enter in each string separated by commas. ex. hello,goodbye,jahkjhjsad,wiwiwi</h3>
     <div>
       <label>
         Length:
@@ -336,14 +340,14 @@
       </label>
       <label>
         Roll Count:
-        <input id="roll_count" type="number" value="25">
+        <input id="roll_count" type="number" value="1">
       </label>
       <button onclick="generate()">Generate</button>
     </div>
 
     <div>
       <label>
-        test_string:
+        Card Lookup:
         <input id="test_string" type="text" value="teststring">
       </label>
       <button onclick="generate_test_string()">Generate</button>
