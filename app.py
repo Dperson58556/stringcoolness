@@ -1,9 +1,6 @@
 import functions_imports as fi
 from flask import Flask, jsonify, request, render_template
 
-# Load Trie Once
-english_trie = fi.load_dictionary_trie("dict.txt")
-
 ###########################################
 ############### FINAL SCORE ###############
 ###########################################
@@ -157,6 +154,9 @@ def generate_scored_string(length, word = None, debug = False):
         "repeated_chunks_bonus_bar_percent": round(repeated_chunks_bonus_bar_percent, 5)
     }
 
+# Load Trie Once
+english_trie = fi.load_dictionary_trie("dict.txt")
+
 # APPLICATION SETUP
 app = Flask(__name__)
 
@@ -166,9 +166,10 @@ def index():
 
 @app.route("/generate_test_string")
 def generate_test_string():
-    test_strings_string = str(request.args.get("test_string"))[:fi.LEN_LIMIT].lower()
+    test_strings_string = str(request.args.get("test_string")).lower()
+    test_strings_string = test_strings_string.replace("%20", "")
 
-    test_strings_list = [item[:fi.LEN_LIMIT].strip().lower() for item in test_strings_string.split(",") if item][:fi.ROLL_LIMIT]
+    test_strings_list = [item[:fi.LEN_LIMIT].strip().lower() for item in test_strings_string.split(",")][:fi.ROLL_LIMIT]
     #rolls = int(request.args.get("roll_count", 1))
 
     invalid = False
