@@ -1,6 +1,11 @@
 import functions_imports as fi
 from flask import Flask, jsonify, request, render_template
 
+
+# Load Trie Once
+english_trie = fi.load_dictionary_trie("dict.txt")
+
+
 ###########################################
 ############### FINAL SCORE ###############
 ###########################################
@@ -18,11 +23,9 @@ def generate_scored_string(length, word = None, debug = False):
     for char in char_counts:
         repeated_1_strs[char] = char_counts[char]
 
-    repeated_chunks = fi.repeated_substrings(random_string)
-
-    # repeated_chunks = {}
-    # for elem in fi.repeated_substrings(random_string):
-    #     repeated_chunks[elem[0]] = elem[2]
+    repeated_chunks = {}
+    for elem in fi.repeated_substrings(random_string):
+        repeated_chunks[elem[0]] = elem[2]
 
     palindromes = list(fi.palindromic_blocks_all(random_string))
     palindromes.sort(key=lambda x: len(x[2]), reverse = True)
@@ -52,7 +55,7 @@ def generate_scored_string(length, word = None, debug = False):
     words_within_bonus = 0
     repeated_chunks_bonus = 0
     char_blocks_bonus = 0
-    bigram_bonus = 0 ##################### NOT IMPLEMENTED YET #####################
+    bigram_bonus = 0
     total_points = 0
 
     # BONUSES
@@ -129,83 +132,29 @@ def generate_scored_string(length, word = None, debug = False):
         "char_blocks": char_blocks,
         "char_blocks_dict": char_blocks_dict,
         "words_within": words_within,
-        "percent_unique": percent_unique,
-        "vowel_ratio_rarity": vowel_ratio_rarity,
-        "entropy": entropy,
-        "entropy_rarity": entropy_rarity,
+        "percent_unique": round(percent_unique,5),
+        "vowel_ratio_rarity": round(vowel_ratio_rarity, 5),
+        "entropy": round(entropy, 5),
+        "entropy_rarity": round(entropy_rarity, 5),
         "letter_points": letter_points,
-        "length_bonus": length_bonus,
-        "entropy_bonus": entropy_bonus,
-        "vowel_ratio_bonus": vowel_ratio_bonus,
-        "bookend_bonus": bookend_bonus,
-        "palindrome_bonus": palindrome_bonus,
-        "words_within_bonus": words_within_bonus,
-        "char_blocks_bonus": char_blocks_bonus,
-        "repeated_chunks_bonus": repeated_chunks_bonus,
-        "bigram_bonus": bigram_bonus,
-        "total_points": total_points,
+        "length_bonus": round(length_bonus, 5),
+        "entropy_bonus": round(entropy_bonus, 5),
+        "vowel_ratio_bonus": round(vowel_ratio_bonus, 5),
+        "bookend_bonus": round(bookend_bonus, 5),
+        "palindrome_bonus": round(palindrome_bonus, 5),
+        "words_within_bonus": round(words_within_bonus, 5),
+        "char_blocks_bonus": round(char_blocks_bonus, 5),
+        "repeated_chunks_bonus": round(repeated_chunks_bonus, 5),
+        "bigram_bonus": round(bigram_bonus, 5),
+        "total_points": round(total_points),
         "card_rarity": card_rarity,
-        "entropy_bar_percent": entropy_bar_percent,
-        "vowel_ratio_bar_percent": vowel_ratio_bar_percent,
-        "bookend_bonus_bar_percent": bookend_bonus_bar_percent,
-        "bigram_bonus_bar_percent": bigram_bonus_bar_percent,
-        "letter_points_bar_percent": letter_points_bar_percent,
-        "words_within_bonus_bar_percent": words_within_bonus_bar_percent,
-        "palindrome_bonus_bar_percent": palindrome_bonus_bar_percent,
-        "char_blocks_bonus_bar_percent": char_blocks_bonus_bar_percent,
-        "repeated_chunks_bonus_bar_percent": repeated_chunks_bonus_bar_percent
+        "entropy_bar_percent": round(entropy_bar_percent, 5),
+        "vowel_ratio_bar_percent": round(vowel_ratio_bar_percent, 5),
+        "bookend_bonus_bar_percent": round(bookend_bonus_bar_percent, 5),
+        "bigram_bonus_bar_percent": round(bigram_bonus_bar_percent, 5),
+        "letter_points_bar_percent": round(letter_points_bar_percent, 5),
+        "words_within_bonus_bar_percent": round(words_within_bonus_bar_percent, 5),
+        "palindrome_bonus_bar_percent": round(palindrome_bonus_bar_percent, 5),
+        "char_blocks_bonus_bar_percent": round(char_blocks_bonus_bar_percent, 5),
+        "repeated_chunks_bonus_bar_percent": round(repeated_chunks_bonus_bar_percent, 5)
     }
-
-# Load Trie Once
-english_trie = fi.load_dictionary_trie("dict.txt")
-
-# APPLICATION SETUP
-app = Flask(__name__)
-
-@app.route("/")
-def index():
-    return render_template("scratch.html")
-
-@app.route("/generate_test_string")
-def generate_test_string():
-    test_strings_string = str(request.args.get("test_string")).lower()
-    test_strings_string = test_strings_string.replace("%20", "")
-
-    test_strings_list = [item[:fi.LEN_LIMIT].strip().lower() for item in test_strings_string.split(",")][:fi.ROLL_LIMIT]
-    #rolls = int(request.args.get("roll_count", 1))
-
-    invalid = False
-    for ts in test_strings_list:
-        if (not ts.isalpha()) or (len(ts)<2):
-            invalid = True
-
-    invalid_string = "invalidinput"
-    if invalid:
-        results = [generate_scored_string(len(invalid_string), invalid_string)]
-    else:
-        results = [generate_scored_string(len(test_string), test_string) for test_string in test_strings_list]
-
-    return jsonify(results)
-
-@app.route("/generate")
-def generate():
-    length = min(fi.LEN_LIMIT, int(request.args.get("length", 10)))
-    rolls = min(fi.ROLL_LIMIT, int(request.args.get("roll_count", 25)))
-    results = []
-
-    debug = 0
-
-    if debug == 1:
-        while len(results) < rolls:
-            res = generate_scored_string(length)
-            if res["card_rarity"] in {"Epic", "Legendary", "Mythical"}:
-                results.append(res)
-            # if res["repeated_chunks"]:
-            #     results.append(res)
-    else:
-        results = [generate_scored_string(length) for _ in range(rolls)]
-    return jsonify(results)
-
-if __name__ == "__main__":
-    #app.run(debug=True)
-    app.run()

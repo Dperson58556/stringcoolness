@@ -8,7 +8,7 @@ from english_bigrams import ENGLISH
 
 ###################################### CONSTANTS ######################################
 LEN_LIMIT = 32
-ROLL_LIMIT = 10
+ROLL_LIMIT = 1000
 RARITY_SCALAR = 1
 
 scp = {}
@@ -23,49 +23,101 @@ def pct_unique(s: str):
     unique_chars = len(set(s))
     return unique_chars / n
 ##### REPEATED SUBSTRINGS #####
+# def repeated_substrings(s: str):
+#     n = len(s)
+#     positions = defaultdict(list)
+
+#     # Record positions of all substrings
+#     for i in range(n):
+#         for j in range(i + 1, n + 1):
+#             positions[s[i:j]].append(i)
+
+#     repeated = []
+#     # Compute non-overlapping counts
+#     for substr, starts in positions.items():
+#         L = len(substr)
+#         starts.sort()
+#         count = 0
+#         last_end = -1
+
+#         for i in starts:
+#             if i >= last_end:
+#                 count += 1
+#                 last_end = i + L
+
+#         if count >= 2 and L >= 2:
+#             repeated.append((substr, L, count))
+    
+#     repeated.sort(key=lambda x: (-x[1], x[0]))
+
+#     # Keep only maximal repeats
+#     result = []
+#     for substr, length, count in repeated:
+#         subsumed = False
+#         for kept_substr, kept_len, kept_count in result:
+#             if (
+#                 kept_count == count and
+#                 substr in kept_substr
+#             ):
+#                 subsumed = True
+#                 break
+
+#         if not subsumed:
+#             result.append((substr, length, count))
+
+#     # Sort longest first
+#     return result
+
 def repeated_substrings(s: str):
     n = len(s)
-    positions = defaultdict(list)
+    result = {}
+    covered = [False] * n  # tracks positions already claimed by larger repeats
 
-    # Record positions of all substrings
-    for i in range(n):
-        for j in range(i + 1, n + 1):
-            positions[s[i:j]].append(i)
+    # longest first
+    for L in range(n // 2, 1, -1):  # substrings length >= 2
+        seen = defaultdict(list)
 
-    repeated = []
-    # Compute non-overlapping counts
-    for substr, starts in positions.items():
-        L = len(substr)
-        starts.sort()
-        count = 0
-        last_end = -1
+        # collect substrings of length L
+        for i in range(n - L + 1):
+            seen[s[i:i+L]].append(i)
 
-        for i in starts:
-            if i >= last_end:
-                count += 1
-                last_end = i + L
+        for substr, starts in seen.items():
+            if len(starts) < 2:
+                continue
 
-        if count >= 2 and L >= 2:
-            repeated.append((substr, L, count))
-    
-    repeated.sort(key=lambda x: (-x[1], x[0]))
+            # enforce non-overlapping
+            starts.sort()
+            count = 0
+            last_end = -1
+            valid_starts = []
 
-    # Keep only maximal repeats
-    result = []
-    for substr, length, count in repeated:
-        subsumed = False
-        for kept_substr, kept_len, kept_count in result:
-            if (
-                kept_count == count and
-                substr in kept_substr
-            ):
-                subsumed = True
-                break
+            for i in starts:
+                if i >= last_end:
+                    count += 1
+                    last_end = i + L
+                    valid_starts.append(i)
 
-        if not subsumed:
-            result.append((substr, length, count))
+            if count < 2:
+                continue
 
-    # Sort longest first
+            # skip if fully subsumed by larger repeat
+            fully_covered = True
+            for i in valid_starts:
+                if not all(covered[j] for j in range(i, i+L)):
+                    fully_covered = False
+                    break
+
+            if fully_covered:
+                continue
+
+            # accept substring
+            result[substr] = count
+
+            # mark positions as covered
+            for i in valid_starts:
+                for j in range(i, i+L):
+                    covered[j] = True
+
     return result
 
 ##### PALINDROMIC BLOCKS (NO MONO-CHARACTER BLOCKS) #####
@@ -249,14 +301,15 @@ def component_z_score(strlen, value, name):
 ############################ ENGLISH-RELATED PARAMETERS ############################
 
 ##### GIVE EACH LETTER A VALUE #####
+
 letter_values = {
-    'a': 1,  'b': 3,  'c': 3,  'd': 2,
-    'e': 1,  'f': 4,  'g': 2,  'h': 4,
-    'i': 1,  'j': 6,  'k': 5,  'l': 1,
-    'm': 3,  'n': 1,  'o': 1,  'p': 3,
-    'q': 8,  'r': 1,  's': 1,  't': 1,
-    'u': 1,  'v': 4,  'w': 4,  'x': 6,
-    'y': 4,  'z': 8
+    'a': 1,  'b': 1,  'c': 1,  'd': 1,
+    'e': 1,  'f': 1,  'g': 1,  'h': 1,
+    'i': 1,  'j': 1,  'k': 1,  'l': 1,
+    'm': 1,  'n': 1,  'o': 1,  'p': 1,
+    'q': 1,  'r': 1,  's': 1,  't': 1,
+    'u': 1,  'v': 1,  'w': 1,  'x': 1,
+    'y': 1,  'z': 1
 }
 
 # letter_values = {

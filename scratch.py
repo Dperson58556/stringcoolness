@@ -81,7 +81,6 @@ def plot_components_at_length(df, length, metric="99.0"):
 
     plt.figure(figsize=(10, 4))
     plt.bar(sub["component"], sub["value"])
-    plt.xticks(rotation=45, ha="right")
     plt.ylabel(f"{metric} value")
     plt.title(f"Component comparison at length {length} ({metric})")
     plt.yscale("log")
