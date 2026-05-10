@@ -1,11 +1,14 @@
-from pyinstrument import Profiler
-from app import generate_scored_string
+import itertools
+import string
 
-profiler = Profiler()
-profiler.start()
+# Generate all lowercase three-letter strings
+letters = string.ascii_lowercase  # 'abcdefghijklmnopqrstuvwxyz'
+three_letter_strings = [''.join(p) for p in itertools.product(letters, repeat=3)]
 
-for _ in range(100_000):
-    generate_scored_string(8)
+with open('dict.txt', 'r') as f:
+    valid_words = set(word.strip().lower() for word in f if len(word.strip()) == 3)
 
-profiler.stop()
-print(profiler.output_text(unicode=True, color=True))
+with open('three_letter_strings.txt', 'w') as f:
+    for s in three_letter_strings:
+        is_valid = s in valid_words
+        f.write(f"{s},{is_valid}\n")
